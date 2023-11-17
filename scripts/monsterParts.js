@@ -39,6 +39,20 @@ class imbuementsSheetData {
 				newImbuements
 			);
 	}
+
+	// get all imbuements.
+	static get allImbuements() {
+		const allImbuements = game.items.reduce((accumulator, item) => {
+			const itemImbuements = this.getImbuementsForItem(item._id);
+
+			return {
+				...accumulator,
+				...itemImbuements,
+			};
+		}, {});
+
+		return allImbuements;
+	}
 }
 
 Hooks.on('renderItemSheetPF2e', (itemSheet, html) => {
