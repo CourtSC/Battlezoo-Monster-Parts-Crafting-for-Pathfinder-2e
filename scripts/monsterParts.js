@@ -106,17 +106,25 @@ Hooks.on('renderItemSheetPF2e', (itemSheet, html) => {
 		</section>`
 	);
 
-	// append existing properties
 	const imbuedPropertiesList = html.find('[class="imbuements"]');
-	// imbuementsSheetData.getImbuementsForItem(itemID);
 
-	html.on('click', '.new-imbuement', (event) => {
-		console.log(`${imbuementsSheet.ID} | New imbuement added.`);
+	for (let imbuementID in imbuementsSheetData.getImbuementsForItem(itemID)) {
+		// console.log(
+		// 	imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID].label
+		// );
 
 		imbuedPropertiesList.append(
 			`<div class="imbuement-form-group">
-				<input id="WeaponSheetPF2e-Item-${itemID}-imbued-property" type="text" name="system.imbuement">
+				<label for="WeaponSheetPF2e-Item-${itemID}-imbued-property">
+					<span>${
+						imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID].label
+					}</span>
+				</label>
 			</div>`
 		);
+	}
+
+	html.on('click', '.new-imbuement', (event) => {
+		console.log(`${imbuementsSheet.ID} | New imbuement added.`);
 	});
 });
