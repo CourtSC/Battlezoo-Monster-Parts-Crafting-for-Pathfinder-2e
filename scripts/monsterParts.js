@@ -53,6 +53,19 @@ class imbuementsSheetData {
 
 		return allImbuements;
 	}
+
+	static updateImbuement(imbuementID, updateData) {
+		const relevantImbuement = this.allImbuements[imbuementID];
+
+		// construct the update to send
+		const update = {
+			[imbuementID]: updateData,
+		};
+
+		return game.items
+			.get(relevantImbuement.itemID)
+			?.setFlag(imbuementsSheet.ID, imbuementsSheet.FLAGS.IMBUEMENTS, update);
+	}
 }
 
 Hooks.on('renderItemSheetPF2e', (itemSheet, html) => {
