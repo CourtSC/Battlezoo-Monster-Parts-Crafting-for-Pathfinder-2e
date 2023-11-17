@@ -66,6 +66,22 @@ class imbuementsSheetData {
 			.get(relevantImbuement.itemID)
 			?.setFlag(imbuementsSheet.ID, imbuementsSheet.FLAGS.IMBUEMENTS, update);
 	}
+
+	static deleteImbuement(imbuementID) {
+		const relevantImbuement = this.allImbuements[imbuementID];
+
+		const keyDeletion = {
+			[`-=${imbuementID}`]: null,
+		};
+
+		return game.items
+			.get(relevantImbuement.itemID)
+			?.setFlag(
+				imbuementsSheet.ID,
+				imbuementsSheet.FLAGS.IMBUEMENTS,
+				keyDeletion
+			);
+	}
 }
 
 Hooks.on('renderItemSheetPF2e', (itemSheet, html) => {
