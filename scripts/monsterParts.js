@@ -31,6 +31,8 @@ class imbuementsSheetData {
 			[newImbuement.id]: newImbuement,
 		};
 
+		console.log(newImbuements);
+
 		return game.items
 			.get(itemID)
 			?.setFlag(
@@ -152,6 +154,8 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 		imbuementsSheetData.createImbuement(itemID, {
 			label: foundry.utils.randomID(16),
 		});
+		event.stopPropagation();
+		return false;
 	});
 
 	// click on Remove Imbuement button
@@ -159,6 +163,8 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 		console.log('Imbuement deleted.');
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
 		imbuementsSheetData.deleteImbuement(imbuementID);
+		event.stopPropagation();
+		return false;
 	});
 
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
