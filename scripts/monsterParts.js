@@ -23,7 +23,14 @@ class imbuementsSheetData {
 		const newImbuement = {
 			...imbuementData,
 			id: foundry.utils.randomID(16),
+			name: 'New Imbuement',
 			itemID,
+			imbuedValue: {
+				pp: 0,
+				gp: 0,
+				sp: 0,
+				cp: 0,
+			},
 		};
 
 		// construct the update to insert the new imbuement
@@ -91,11 +98,6 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	const imbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
 
-	// itemSheet._tabs[0].callback = (event, tabs, active) => {
-	// 	itemSheet._onChangeTab.call(itemSheet, event, tabs, active);
-	// 	tabs._activeCustom = active;
-	// };
-
 	// This is the callback function.
 	function customCallback(event, tabs, active) {
 		this._onChangeTab(event, tabs, active);
@@ -126,10 +128,11 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 		imbuedPropertiesSection.append(
 			`<div class="imbuement-form-group">
 				<fieldset>
-					<legend>${imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID].label}
+					<legend>${imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID].name}
 					</legend>
-					<label for="WeaponSheetPF2e-Item-${itemID}-imbued-property">Total Value:</label>
 					<div class="imbuement-fieldset-controls">
+						<a class="edit-imbuement" data-tooltip="Edit Imbuement" data-imbuement-id="${imbuementID}">
+							<i class="fa-solid fa-fw fa-edit"></i>
 						<a class="delete-imbuement" data-tooltip="Remove Imbuement" data-imbuement-id="${imbuementID}">
 							<i class="fa-solid fa-fw fa-trash"></i>
 						</a>
@@ -168,4 +171,68 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	});
 
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
+
+	// Click on Edit Imbuement Button
+	html.on('click', '.edit-imbuement', (event) => {
+		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
+		const imbuement =
+			imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
+		const editImbuementDialog = `
+			<form autocomplete="off">
+				<div class="form-group">
+					<label>Name:</label>
+					<input id="${imbuementID}-name" type="text" value="${imbuement.name}" placeholder="${imbuement.name}"></input>
+				</div>
+				<div class="form-group">
+					<label>Platinum:</label>
+					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.pp}" min="0"></input>
+				</div>
+				<div class="form-group">
+					<label>Gold:</label>
+					<input id="${imbuementID}-gp-value" type="number" value="${imbuement.imbuedValue.gp}" min="0"></input>
+				</div>
+				<div class="form-group">
+					<label>Silver:</label>
+					<input id="${imbuementID}-sp-value" type="number" value="${imbuement.imbuedValue.sp}" min="0"></input>
+				</div>
+				<div class="form-group">
+					<label>Copper:</label>
+					<input id="${imbuementID}-cp-value" type="number" value="${imbuement.imbuedValue.cp}" min="0"></input>
+				</div>
+			</form>
+					`;
+
+		const editWindowDialog = new Dialog({
+			title: imbuement.name,
+			content: editImbuementDialog,
+			buttons: {
+				saveButton: {
+					label: 'Save Changes',
+					callback: (html) => {
+						// console.log(html.find('input').val());
+						const imbuedValue = {
+							pp: html.find(`#${imbuementID}-pp-value`).val(),
+							gp: html.find(`#${imbuementID}-gp-value`).val(),
+							sp: html.find(`#${imbuementID}-sp-value`).val(),
+							cp: html.find(`#${imbuementID}-cp-value`).val(),
+						};
+						const imbuementName = html.find(`#${imbuementID}-name`).val();
+
+						imbuementsSheetData.updateImbuement(imbuementID, {
+							name: imbuementName,
+							imbuedValue: imbuedValue,
+						});
+					},
+					icon: `<i class="fas fa-save"></i>`,
+				},
+			},
+			default: 'saveButton',
+			// close: (html) => {
+			// 	console.log(html);
+			// },
+		});
+		editWindowDialog.render(true);
+		event.stopPropagation();
+		return false;
+	});
 });
