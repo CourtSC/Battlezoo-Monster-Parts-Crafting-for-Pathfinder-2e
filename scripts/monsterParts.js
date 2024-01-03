@@ -125,11 +125,20 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	// Populate the Imbuements sheet with existing imbuements
 	const imbuedPropertiesSection = html.find('[class="imbuements"]');
 	for (let imbuementID in imbuementsSheetData.getImbuementsForItem(itemID)) {
+		const imbuement =
+			imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
 		imbuedPropertiesSection.append(
 			`<div class="imbuement-form-group">
 				<fieldset>
-					<legend>${imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID].name}
-					</legend>
+					<legend>${imbuement.name}</legend>
+					<div class="imbuement-values">
+						${
+							parseInt(imbuement.imbuedValue.pp) * 10 +
+							parseInt(imbuement.imbuedValue.gp)
+						} gp, 
+						${imbuement.imbuedValue.sp} sp, 
+						${imbuement.imbuedValue.cp} cp
+					</div>
 					<div class="imbuement-fieldset-controls">
 						<a class="edit-imbuement" data-tooltip="Edit Imbuement" data-imbuement-id="${imbuementID}">
 							<i class="fa-solid fa-fw fa-edit"></i>
@@ -185,19 +194,19 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 				</div>
 				<div class="form-group">
 					<label>Platinum:</label>
-					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.pp}" min="0"></input>
+					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.pp}" min="0" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Gold:</label>
-					<input id="${imbuementID}-gp-value" type="number" value="${imbuement.imbuedValue.gp}" min="0"></input>
+					<input id="${imbuementID}-gp-value" type="number" value="${imbuement.imbuedValue.gp}" min="0" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Silver:</label>
-					<input id="${imbuementID}-sp-value" type="number" value="${imbuement.imbuedValue.sp}" min="0"></input>
+					<input id="${imbuementID}-sp-value" type="number" value="${imbuement.imbuedValue.sp}" min="0" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Copper:</label>
-					<input id="${imbuementID}-cp-value" type="number" value="${imbuement.imbuedValue.cp}" min="0"></input>
+					<input id="${imbuementID}-cp-value" type="number" value="${imbuement.imbuedValue.cp}" min="0" step="1"></input>
 				</div>
 			</form>
 					`;
