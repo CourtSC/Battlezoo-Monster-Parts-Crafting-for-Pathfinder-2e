@@ -227,9 +227,9 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 				},
 			},
 			default: 'saveButton',
-			// close: (html) => {
-			// 	console.log(html);
-			// },
+			close: (html) => {
+				console.log(html);
+			},
 		});
 		editWindowDialog.render(true);
 		event.stopPropagation();
