@@ -132,12 +132,14 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 				<fieldset>
 					<legend>${imbuement.name}</legend>
 					<div class="imbuement-values">
-						${
-							parseInt(imbuement.imbuedValue.pp) * 10 +
-							parseInt(imbuement.imbuedValue.gp)
-						} gp, 
-						${imbuement.imbuedValue.sp} sp, 
-						${imbuement.imbuedValue.cp} cp
+						${Number(
+							(
+								parseInt(imbuement.imbuedValue.pp) * 10 +
+								parseInt(imbuement.imbuedValue.gp) +
+								parseInt(imbuement.imbuedValue.sp) / 10 +
+								parseInt(imbuement.imbuedValue.cp) / 100
+							).toFixed(2)
+						)} gp
 					</div>
 					<div class="imbuement-fieldset-controls">
 						<a class="edit-imbuement" data-tooltip="Edit Imbuement" data-imbuement-id="${imbuementID}">
@@ -211,6 +213,10 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 			</form>
 					`;
 
+		const addImbuementValue = (currentVal, addedVal) => {
+			return parseInt(currentVal) + parseInt(addedVal);
+		};
+
 		const editWindowDialog = new Dialog({
 			title: imbuement.name,
 			content: editImbuementDialog,
@@ -220,10 +226,22 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 					callback: (html) => {
 						// console.log(html.find('input').val());
 						const imbuedValue = {
-							pp: html.find(`#${imbuementID}-pp-value`).val(),
-							gp: html.find(`#${imbuementID}-gp-value`).val(),
-							sp: html.find(`#${imbuementID}-sp-value`).val(),
-							cp: html.find(`#${imbuementID}-cp-value`).val(),
+							pp: addImbuementValue(
+								imbuement.imbuedValue.pp,
+								html.find(`#${imbuementID}-pp-value`).val()
+							),
+							gp: addImbuementValue(
+								imbuement.imbuedValue.pp,
+								html.find(`#${imbuementID}-gp-value`).val()
+							),
+							pp: addImbuementValue(
+								imbuement.imbuedValue.sp,
+								html.find(`#${imbuementID}-sp-value`).val()
+							),
+							pp: addImbuementValue(
+								imbuement.imbuedValue.cp,
+								html.find(`#${imbuementID}-cp-value`).val()
+							),
 						};
 						const imbuementName = html.find(`#${imbuementID}-name`).val();
 
