@@ -196,19 +196,19 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 				</div>
 				<div class="form-group">
 					<label>Platinum:</label>
-					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.pp}" min="0" step="1"></input>
+					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.pp}" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Gold:</label>
-					<input id="${imbuementID}-gp-value" type="number" value="${imbuement.imbuedValue.gp}" min="0" step="1"></input>
+					<input id="${imbuementID}-gp-value" type="number" value="${imbuement.imbuedValue.gp}" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Silver:</label>
-					<input id="${imbuementID}-sp-value" type="number" value="${imbuement.imbuedValue.sp}" min="0" step="1"></input>
+					<input id="${imbuementID}-sp-value" type="number" value="${imbuement.imbuedValue.sp}" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Copper:</label>
-					<input id="${imbuementID}-cp-value" type="number" value="${imbuement.imbuedValue.cp}" min="0" step="1"></input>
+					<input id="${imbuementID}-cp-value" type="number" value="${imbuement.imbuedValue.cp}" step="1"></input>
 				</div>
 			</form>
 					`;
