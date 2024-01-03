@@ -181,7 +181,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 			<form autocomplete="off">
 				<div class="form-group">
 					<label>Name:</label>
-					<input id="${imbuementID}-name" type="text" placeholder="${imbuement.name}"></input>
+					<input id="${imbuementID}-name" type="text" value="${imbuement.name}" placeholder="${imbuement.name}"></input>
 				</div>
 				<div class="form-group">
 					<label>Platinum:</label>
@@ -189,15 +189,15 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 				</div>
 				<div class="form-group">
 					<label>Gold:</label>
-					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.gp}" min="0"></input>
+					<input id="${imbuementID}-gp-value" type="number" value="${imbuement.imbuedValue.gp}" min="0"></input>
 				</div>
 				<div class="form-group">
 					<label>Silver:</label>
-					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.sp}" min="0"></input>
+					<input id="${imbuementID}-sp-value" type="number" value="${imbuement.imbuedValue.sp}" min="0"></input>
 				</div>
 				<div class="form-group">
 					<label>Copper:</label>
-					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.cp}" min="0"></input>
+					<input id="${imbuementID}-cp-value" type="number" value="${imbuement.imbuedValue.cp}" min="0"></input>
 				</div>
 			</form>
 					`;
@@ -205,7 +205,31 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 		const editWindowDialog = new Dialog({
 			title: imbuement.name,
 			content: editImbuementDialog,
-			buttons: {},
+			buttons: {
+				saveButton: {
+					label: 'Save Changes',
+					callback: (html) => {
+						// console.log(html.find('input').val());
+						const imbuedValue = {
+							pp: html.find(`#${imbuementID}-pp-value`).val(),
+							gp: html.find(`#${imbuementID}-gp-value`).val(),
+							sp: html.find(`#${imbuementID}-sp-value`).val(),
+							cp: html.find(`#${imbuementID}-cp-value`).val(),
+						};
+						const imbuementName = html.find(`#${imbuementID}-name`).val();
+
+						imbuementsSheetData.updateImbuement(imbuementID, {
+							name: imbuementName,
+							imbuedValue: imbuedValue,
+						});
+					},
+					icon: `<i class="fas fa-save"></i>`,
+				},
+			},
+			default: 'saveButton',
+			// close: (html) => {
+			// 	console.log(html);
+			// },
 		});
 		editWindowDialog.render(true);
 		event.stopPropagation();
