@@ -1,4 +1,4 @@
-class imbuementsSheet {
+class ImbuementsSheet {
 	static ID = 'Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e';
 
 	static FLAGS = {
@@ -6,16 +6,16 @@ class imbuementsSheet {
 	};
 
 	static TEMPLATES = {
-		IMBUEMENTSSHEET: `modules/${this.ID}/templates/monsterParts.hbs`,
+		ImbuementsSheet: `modules/${this.ID}/templates/monsterParts.hbs`,
 	};
 }
 
-class imbuementsSheetData {
+class ImbuementsSheetData {
 	// get all of the imbued properties on an item
 	static getImbuementsForItem(itemID) {
 		return game.items
 			.get(itemID)
-			?.getFlag(imbuementsSheet.ID, imbuementsSheet.FLAGS.IMBUEMENTS);
+			?.getFlag(ImbuementsSheet.ID, ImbuementsSheet.FLAGS.IMBUEMENTS);
 	}
 
 	// create a new imbuement
@@ -43,8 +43,8 @@ class imbuementsSheetData {
 		return game.items
 			.get(itemID)
 			?.setFlag(
-				imbuementsSheet.ID,
-				imbuementsSheet.FLAGS.IMBUEMENTS,
+				ImbuementsSheet.ID,
+				ImbuementsSheet.FLAGS.IMBUEMENTS,
 				newImbuements
 			);
 	}
@@ -73,7 +73,7 @@ class imbuementsSheetData {
 
 		return game.items
 			.get(relevantImbuement.itemID)
-			?.setFlag(imbuementsSheet.ID, imbuementsSheet.FLAGS.IMBUEMENTS, update);
+			?.setFlag(ImbuementsSheet.ID, ImbuementsSheet.FLAGS.IMBUEMENTS, update);
 	}
 
 	static deleteImbuement(imbuementID) {
@@ -86,8 +86,8 @@ class imbuementsSheetData {
 		return game.items
 			.get(relevantImbuement.itemID)
 			?.setFlag(
-				imbuementsSheet.ID,
-				imbuementsSheet.FLAGS.IMBUEMENTS,
+				ImbuementsSheet.ID,
+				ImbuementsSheet.FLAGS.IMBUEMENTS,
 				keyDeletion
 			);
 	}
@@ -95,7 +95,7 @@ class imbuementsSheetData {
 
 Hooks.on('renderItemSheet', (itemSheet, html) => {
 	const itemSheetTabs = html.find('[class="sheet-tabs tabs"]');
-	const imbuementsSheetBody = html.find('[class="sheet-body"]');
+	const ImbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
 
 	// This is the callback function.
@@ -115,7 +115,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 		`<a class='list-row' data-tab='imbuements'>Imbuements</a>`
 	);
 
-	imbuementsSheetBody.append(
+	ImbuementsSheetBody.append(
 		`<section class="tab imbuements" data-tab="imbuements">
 			<div class="imbuements">
 			</div> 
@@ -124,9 +124,9 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 
 	// Populate the Imbuements sheet with existing imbuements
 	const imbuedPropertiesSection = html.find('[class="imbuements"]');
-	for (let imbuementID in imbuementsSheetData.getImbuementsForItem(itemID)) {
+	for (let imbuementID in ImbuementsSheetData.getImbuementsForItem(itemID)) {
 		const imbuement =
-			imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
+			ImbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
 		imbuedPropertiesSection.append(
 			`<div class="imbuement-form-group">
 				<fieldset>
@@ -165,7 +165,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	// Click on New Imbuements button
 	html.on('click', '.new-imbuement', (event) => {
 		console.log('Imbuement created.');
-		imbuementsSheetData.createImbuement(itemID, {
+		ImbuementsSheetData.createImbuement(itemID, {
 			label: foundry.utils.randomID(16),
 		});
 		event.stopPropagation();
@@ -176,7 +176,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	html.on('click', '.delete-imbuement', (event) => {
 		console.log('Imbuement deleted.');
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
-		imbuementsSheetData.deleteImbuement(imbuementID);
+		ImbuementsSheetData.deleteImbuement(imbuementID);
 		event.stopPropagation();
 		return false;
 	});
@@ -187,7 +187,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	html.on('click', '.edit-imbuement', (event) => {
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
 		const imbuement =
-			imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
+			ImbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
 		const editImbuementDialog = `
 			<form autocomplete="off">
 				<div class="form-group">
@@ -245,7 +245,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 						};
 						const imbuementName = html.find(`#${imbuementID}-name`).val();
 
-						imbuementsSheetData.updateImbuement(imbuementID, {
+						ImbuementsSheetData.updateImbuement(imbuementID, {
 							name: imbuementName,
 							imbuedValue: imbuedValue,
 						});
