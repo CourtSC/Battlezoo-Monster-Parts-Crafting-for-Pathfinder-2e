@@ -91,11 +91,6 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	const imbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
 
-	// itemSheet._tabs[0].callback = (event, tabs, active) => {
-	// 	itemSheet._onChangeTab.call(itemSheet, event, tabs, active);
-	// 	tabs._activeCustom = active;
-	// };
-
 	// This is the callback function.
 	function customCallback(event, tabs, active) {
 		this._onChangeTab(event, tabs, active);
@@ -126,10 +121,11 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 		imbuedPropertiesSection.append(
 			`<div class="imbuement-form-group">
 				<fieldset>
-					<legend>${imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID].label}
+					<legend>
 					</legend>
-					<label for="WeaponSheetPF2e-Item-${itemID}-imbued-property">Total Value:</label>
 					<div class="imbuement-fieldset-controls">
+						<a class="edit-imbuement" data-tooltip="Edit Imbuement" data-imbuement-id="${imbuementID}">
+							<i class="fa-solid fa-fw fa-edit"></i>
 						<a class="delete-imbuement" data-tooltip="Remove Imbuement" data-imbuement-id="${imbuementID}">
 							<i class="fa-solid fa-fw fa-trash"></i>
 						</a>
