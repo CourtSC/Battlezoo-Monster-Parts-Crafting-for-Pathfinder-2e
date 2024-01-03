@@ -196,25 +196,31 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 				</div>
 				<div class="form-group">
 					<label>Platinum:</label>
-					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.pp}" step="1"></input>
+					<input id="${imbuementID}-pp-value" type="number" value="0" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Gold:</label>
-					<input id="${imbuementID}-gp-value" type="number" value="${imbuement.imbuedValue.gp}" step="1"></input>
+					<input id="${imbuementID}-gp-value" type="number" value="0" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Silver:</label>
-					<input id="${imbuementID}-sp-value" type="number" value="${imbuement.imbuedValue.sp}" step="1"></input>
+					<input id="${imbuementID}-sp-value" type="number" value="0" step="1"></input>
 				</div>
 				<div class="form-group">
 					<label>Copper:</label>
-					<input id="${imbuementID}-cp-value" type="number" value="${imbuement.imbuedValue.cp}" step="1"></input>
+					<input id="${imbuementID}-cp-value" type="number" value="0" step="1"></input>
 				</div>
 			</form>
 					`;
 
 		const addImbuementValue = (currentVal, addedVal) => {
-			return parseInt(currentVal) + parseInt(addedVal);
+			if (isNaN(addedVal)) {
+				console.log(addedVal);
+				return currentVal;
+			} else {
+				// console.log(addedVal);
+				return parseInt(currentVal) + addedVal;
+			}
 		};
 
 		const editWindowDialog = new Dialog({
@@ -222,25 +228,25 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 			content: editImbuementDialog,
 			buttons: {
 				saveButton: {
-					label: 'Save Changes',
+					label: 'Add Values',
 					callback: (html) => {
 						// console.log(html.find('input').val());
 						const imbuedValue = {
 							pp: addImbuementValue(
 								imbuement.imbuedValue.pp,
-								html.find(`#${imbuementID}-pp-value`).val()
+								parseInt(html.find(`#${imbuementID}-pp-value`).val())
 							),
 							gp: addImbuementValue(
-								imbuement.imbuedValue.pp,
-								html.find(`#${imbuementID}-gp-value`).val()
+								imbuement.imbuedValue.gp,
+								parseInt(html.find(`#${imbuementID}-gp-value`).val())
 							),
-							pp: addImbuementValue(
+							sp: addImbuementValue(
 								imbuement.imbuedValue.sp,
-								html.find(`#${imbuementID}-sp-value`).val()
+								parseInt(html.find(`#${imbuementID}-sp-value`).val())
 							),
-							pp: addImbuementValue(
+							cp: addImbuementValue(
 								imbuement.imbuedValue.cp,
-								html.find(`#${imbuementID}-cp-value`).val()
+								parseInt(html.find(`#${imbuementID}-cp-value`).val())
 							),
 						};
 						const imbuementName = html.find(`#${imbuementID}-name`).val();
