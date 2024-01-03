@@ -23,7 +23,14 @@ class imbuementsSheetData {
 		const newImbuement = {
 			...imbuementData,
 			id: foundry.utils.randomID(16),
+			name: 'New Imbuement',
 			itemID,
+			imbuedValue: {
+				pp: 0,
+				gp: 0,
+				sp: 0,
+				cp: 0,
+			},
 		};
 
 		// construct the update to insert the new imbuement
@@ -121,7 +128,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 		imbuedPropertiesSection.append(
 			`<div class="imbuement-form-group">
 				<fieldset>
-					<legend>
+					<legend>${imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID].name}
 					</legend>
 					<div class="imbuement-fieldset-controls">
 						<a class="edit-imbuement" data-tooltip="Edit Imbuement" data-imbuement-id="${imbuementID}">
@@ -164,4 +171,44 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	});
 
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
+
+	// Click on Edit Imbuement Button
+	html.on('click', '.edit-imbuement', (event) => {
+		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
+		const imbuement =
+			imbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
+		const editImbuementDialog = `
+			<form autocomplete="off">
+				<div class="form-group">
+					<label>Name:</label>
+					<input id="${imbuementID}-name" type="text" placeholder="${imbuement.name}"></input>
+				</div>
+				<div class="form-group">
+					<label>Platinum:</label>
+					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.pp}" min="0"></input>
+				</div>
+				<div class="form-group">
+					<label>Gold:</label>
+					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.gp}" min="0"></input>
+				</div>
+				<div class="form-group">
+					<label>Silver:</label>
+					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.sp}" min="0"></input>
+				</div>
+				<div class="form-group">
+					<label>Copper:</label>
+					<input id="${imbuementID}-pp-value" type="number" value="${imbuement.imbuedValue.cp}" min="0"></input>
+				</div>
+			</form>
+					`;
+
+		const editWindowDialog = new Dialog({
+			title: imbuement.name,
+			content: editImbuementDialog,
+			buttons: {},
+		});
+		editWindowDialog.render(true);
+		event.stopPropagation();
+		return false;
+	});
 });
