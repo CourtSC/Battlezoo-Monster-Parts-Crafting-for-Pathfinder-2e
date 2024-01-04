@@ -35,5 +35,5 @@
     "styles": [
       "styles/monsterParts.css"
     ],
-    "manifest": "https://github.com/CourtSC/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/blob/main/module.json"
+    "manifest": "https://raw.githubusercontent.com/CourtSC/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/main/module.json"
 }
