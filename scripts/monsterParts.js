@@ -218,7 +218,6 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 				console.log(addedVal);
 				return currentVal;
 			} else {
-				// console.log(addedVal);
 				return parseInt(currentVal) + addedVal;
 			}
 		};
