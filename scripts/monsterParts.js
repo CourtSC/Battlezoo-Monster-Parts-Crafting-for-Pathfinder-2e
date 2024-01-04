@@ -94,7 +94,7 @@ class ImbuementsSheetData {
 }
 
 Hooks.on('renderItemSheet', (itemSheet, html) => {
-	const itemSheetTabs = html.find('[class="sheet-tabs tabs"]');
+	const itemSheetTabs = html.find('[class="tabs"]');
 	const ImbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
 
