@@ -11,20 +11,32 @@ class ImbuementsSheet {
 }
 
 class ImbuementsSheetData {
+	// Get item from actor's inventory
+	static getItemFromActorInventory(actorID, itemID) {
+		const actorInventory = game.actors.get(actorID).inventory.contents;
+		for (let key in actorInventory) {
+			if (actorInventory[key]._id === itemID) {
+				return actorInventory[key];
+			}
+		}
+	}
+
 	// get all of the imbued properties on an item
-	static getImbuementsForItem(itemID) {
-		return game.items
-			.get(itemID)
-			?.getFlag(ImbuementsSheet.ID, ImbuementsSheet.FLAGS.IMBUEMENTS);
+	static getImbuementsForItem(actorID, itemID) {
+		return this.getItemFromActorInventory(actorID, itemID)?.getFlag(
+			ImbuementsSheet.ID,
+			ImbuementsSheet.FLAGS.IMBUEMENTS
+		);
 	}
 
 	// create a new imbuement
-	static createImbuement(itemID, imbuementData) {
+	static createImbuement(actorID, itemID, imbuementData) {
 		const newImbuement = {
 			...imbuementData,
 			id: foundry.utils.randomID(16),
 			name: 'New Imbuement',
 			itemID,
+			actorID,
 			imbuedValue: {
 				pp: 0,
 				gp: 0,
@@ -40,30 +52,35 @@ class ImbuementsSheetData {
 
 		console.log(newImbuements);
 
-		return game.items
-			.get(itemID)
-			?.setFlag(
-				ImbuementsSheet.ID,
-				ImbuementsSheet.FLAGS.IMBUEMENTS,
-				newImbuements
-			);
+		return this.getItemFromActorInventory(actorID, itemID)?.setFlag(
+			ImbuementsSheet.ID,
+			ImbuementsSheet.FLAGS.IMBUEMENTS,
+			newImbuements
+		);
 	}
 
 	// get all imbuements.
 	static get allImbuements() {
-		const allImbuements = game.items.reduce((accumulator, item) => {
-			const itemImbuements = this.getImbuementsForItem(item._id);
-
+		const allImbuements = game.actors.reduce((accumulator, actor) => {
+			const currentActorImbuements = actor.inventory.contents.reduce(
+				(accumulator, item) => {
+					const itemImbuements = this.getImbuementsForItem(actor._id, item._id);
+					return {
+						...accumulator,
+						...itemImbuements,
+					};
+				},
+				{}
+			);
 			return {
 				...accumulator,
-				...itemImbuements,
+				...currentActorImbuements,
 			};
 		}, {});
-
 		return allImbuements;
 	}
 
-	static updateImbuement(imbuementID, updateData) {
+	static updateImbuement(actorID, imbuementID, updateData) {
 		const relevantImbuement = this.allImbuements[imbuementID];
 
 		// construct the update to send
@@ -71,25 +88,27 @@ class ImbuementsSheetData {
 			[imbuementID]: updateData,
 		};
 
-		return game.items
-			.get(relevantImbuement.itemID)
-			?.setFlag(ImbuementsSheet.ID, ImbuementsSheet.FLAGS.IMBUEMENTS, update);
+		return this.getItemFromActorInventory(
+			actorID,
+			relevantImbuement.itemID
+		)?.setFlag(ImbuementsSheet.ID, ImbuementsSheet.FLAGS.IMBUEMENTS, update);
 	}
 
-	static deleteImbuement(imbuementID) {
+	static deleteImbuement(actorID, imbuementID) {
 		const relevantImbuement = this.allImbuements[imbuementID];
 
 		const keyDeletion = {
 			[`-=${imbuementID}`]: null,
 		};
 
-		return game.items
-			.get(relevantImbuement.itemID)
-			?.setFlag(
-				ImbuementsSheet.ID,
-				ImbuementsSheet.FLAGS.IMBUEMENTS,
-				keyDeletion
-			);
+		return this.getItemFromActorInventory(
+			actorID,
+			relevantImbuement.itemID
+		)?.setFlag(
+			ImbuementsSheet.ID,
+			ImbuementsSheet.FLAGS.IMBUEMENTS,
+			keyDeletion
+		);
 	}
 }
 
@@ -97,6 +116,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	const itemSheetTabs = html.find('[class="tabs"]');
 	const ImbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
+	const actorID = itemSheet.actor._id;
 
 	// This is the callback function.
 	function customCallback(event, tabs, active) {
@@ -124,9 +144,13 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 
 	// Populate the Imbuements sheet with existing imbuements
 	const imbuedPropertiesSection = html.find('[class="imbuements"]');
-	for (let imbuementID in ImbuementsSheetData.getImbuementsForItem(itemID)) {
-		const imbuement =
-			ImbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
+	for (let imbuementID in ImbuementsSheetData.getImbuementsForItem(
+		actorID,
+		itemID
+	)) {
+		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
+			imbuementID
+		];
 		imbuedPropertiesSection.append(
 			`<div class="imbuement-form-group">
 				<fieldset>
@@ -142,9 +166,9 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 						)} gp
 					</div>
 					<div class="imbuement-fieldset-controls">
-						<a class="edit-imbuement" data-tooltip="Edit Imbuement" data-imbuement-id="${imbuementID}">
+						<a class="edit-imbuement" data-tooltip="Edit Imbuement" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
 							<i class="fa-solid fa-fw fa-edit"></i>
-						<a class="delete-imbuement" data-tooltip="Remove Imbuement" data-imbuement-id="${imbuementID}">
+						<a class="delete-imbuement" data-tooltip="Remove Imbuement" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
 							<i class="fa-solid fa-fw fa-trash"></i>
 						</a>
 					</div>
@@ -165,7 +189,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	// Click on New Imbuements button
 	html.on('click', '.new-imbuement', (event) => {
 		console.log('Imbuement created.');
-		ImbuementsSheetData.createImbuement(itemID, {
+		ImbuementsSheetData.createImbuement(actorID, itemID, {
 			label: foundry.utils.randomID(16),
 		});
 		event.stopPropagation();
@@ -176,7 +200,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	html.on('click', '.delete-imbuement', (event) => {
 		console.log('Imbuement deleted.');
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
-		ImbuementsSheetData.deleteImbuement(imbuementID);
+		ImbuementsSheetData.deleteImbuement(actorID, imbuementID);
 		event.stopPropagation();
 		return false;
 	});
@@ -186,32 +210,34 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	// Click on Edit Imbuement Button
 	html.on('click', '.edit-imbuement', (event) => {
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
-		const imbuement =
-			ImbuementsSheetData.getImbuementsForItem(itemID)[imbuementID];
+		const actorID = event.currentTarget.getAttribute('data-actor-id');
+		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
+			imbuementID
+		];
 		const editImbuementDialog = `
-			<form autocomplete="off">
-				<div class="form-group">
-					<label>Name:</label>
-					<input id="${imbuementID}-name" type="text" value="${imbuement.name}" placeholder="${imbuement.name}"></input>
-				</div>
-				<div class="form-group">
-					<label>Platinum:</label>
-					<input id="${imbuementID}-pp-value" type="number" value="0" step="1"></input>
-				</div>
-				<div class="form-group">
-					<label>Gold:</label>
-					<input id="${imbuementID}-gp-value" type="number" value="0" step="1"></input>
-				</div>
-				<div class="form-group">
-					<label>Silver:</label>
-					<input id="${imbuementID}-sp-value" type="number" value="0" step="1"></input>
-				</div>
-				<div class="form-group">
-					<label>Copper:</label>
-					<input id="${imbuementID}-cp-value" type="number" value="0" step="1"></input>
-				</div>
-			</form>
-					`;
+				<form autocomplete="off">
+					<div class="form-group">
+						<label>Name:</label>
+						<input id="${imbuementID}-name" type="text" value="${imbuement.name}" placeholder="${imbuement.name}"></input>
+					</div>
+					<div class="form-group">
+						<label>Platinum:</label>
+						<input id="${imbuementID}-pp-value" type="number" value="0" step="1"></input>
+					</div>
+					<div class="form-group">
+						<label>Gold:</label>
+						<input id="${imbuementID}-gp-value" type="number" value="0" step="1"></input>
+					</div>
+					<div class="form-group">
+						<label>Silver:</label>
+						<input id="${imbuementID}-sp-value" type="number" value="0" step="1"></input>
+					</div>
+					<div class="form-group">
+						<label>Copper:</label>
+						<input id="${imbuementID}-cp-value" type="number" value="0" step="1"></input>
+					</div>
+				</form>
+						`;
 
 		const addImbuementValue = (currentVal, addedVal) => {
 			if (isNaN(addedVal)) {
@@ -250,7 +276,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 						};
 						const imbuementName = html.find(`#${imbuementID}-name`).val();
 
-						ImbuementsSheetData.updateImbuement(imbuementID, {
+						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
 							name: imbuementName,
 							imbuedValue: imbuedValue,
 						});
