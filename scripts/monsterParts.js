@@ -1,16 +1,12 @@
 class ImbuementsSheet {
 	static ID = 'Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e';
 
-	// const imbuedPropertiesData = foundry.utils.fetchJsonWithTimeout(
-	// 	'modules/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/data/imbuements.json'
-	// );
-
 	static FLAGS = {
 		IMBUEMENTS: 'imbuements',
 	};
 
 	static TEMPLATES = {
-		ImbuementsSheet: `modules/${this.ID}/templates/monsterParts.hbs`,
+		ImbuedPropertiesSheet: `modules/${this.ID}/templates/imbued-properties-sheet.hbs`,
 	};
 }
 
@@ -118,6 +114,11 @@ class ImbuementsSheetData {
 }
 
 Hooks.on('renderItemSheet', (itemSheet, html) => {
+	const imbuementsData = foundry.utils.fetchJsonWithTimeout(
+		`modules/${ImbuementsSheet.ID}/data/imbuements.json`
+	);
+	console.log(imbuementsData);
+
 	const itemSheetTabs = html.find('[class="tabs"]');
 	const ImbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
@@ -171,8 +172,8 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 						)} gp
 					</div>
 					<div class="imbuement-fieldset-controls">
-						<a class="edit-imbuement" data-tooltip="Edit Imbuement" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
-							<i class="fa-solid fa-fw fa-edit"></i>
+						<a class="edit-imbuement-value" data-tooltip="Edit Imbuement Value" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
+							<i class="fa-solid fa-coins"></i>
 						<a class="delete-imbuement" data-tooltip="Remove Imbuement" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
 							<i class="fa-solid fa-fw fa-trash"></i>
 						</a>
@@ -213,7 +214,7 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
 
 	// Click on Edit Imbuement Button
-	html.on('click', '.edit-imbuement', (event) => {
+	html.on('click', '.edit-imbuement-value', (event) => {
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
 		const actorID = event.currentTarget.getAttribute('data-actor-id');
 		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
@@ -221,10 +222,6 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 		];
 		const editImbuementDialog = `
 				<form autocomplete="off">
-					<div class="form-group">
-						<label>Name:</label>
-						<input id="${imbuementID}-name" type="text" value="${imbuement.name}" placeholder="${imbuement.name}"></input>
-					</div>
 					<div class="form-group">
 						<label>Platinum:</label>
 						<input id="${imbuementID}-pp-value" type="number" value="0" step="1"></input>
@@ -279,10 +276,9 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 								parseInt(html.find(`#${imbuementID}-cp-value`).val())
 							),
 						};
-						const imbuementName = html.find(`#${imbuementID}-name`).val();
+						// const imbuementName = html.find(`#${imbuementID}-name`).val();
 
 						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
-							name: imbuementName,
 							imbuedValue: imbuedValue,
 						});
 					},
