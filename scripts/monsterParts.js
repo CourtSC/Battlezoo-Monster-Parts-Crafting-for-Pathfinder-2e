@@ -113,12 +113,32 @@ class ImbuementsSheetData {
 	}
 }
 
-Hooks.on('renderItemSheet', (itemSheet, html) => {
-	const imbuementsData = foundry.utils.fetchJsonWithTimeout(
-		`modules/${ImbuementsSheet.ID}/data/imbuements.json`
-	);
-	console.log(imbuementsData);
+class ImbuementsSheetConfig extends FormApplication {
+	static get defaultOptions() {
+		const defaults = super.defaultOptions;
 
+		const overrides = {
+			id: 'imbuements-sheet',
+			template: ImbuementsSheet.TEMPLATES.ImbuedPropertiesSheet,
+			title: 'Configure Imbuement',
+		};
+
+		const mergedOptions = foundry.utils.mergeObject(defaults, overrides);
+
+		return mergedOptions;
+	}
+
+	async getData(options) {
+		const imbuedProperties = await foundry.utils.fetchJsonWithTimeout(
+			`modules/${ImbuementsSheet.ID}/data/imbuements.json`
+		);
+		return {
+			weapon: imbuedProperties.weapon,
+		};
+	}
+}
+
+Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	const itemSheetTabs = html.find('[class="tabs"]');
 	const ImbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
@@ -172,8 +192,10 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 						)} gp
 					</div>
 					<div class="imbuement-fieldset-controls">
+						<a class="configure-imbuement" data-tooltip="Configure Imbuement" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
+							<i class="fas fa-edit"> </i>
 						<a class="edit-imbuement-value" data-tooltip="Edit Imbuement Value" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
-							<i class="fa-solid fa-coins"></i>
+							<i class="fa-solid fa-coins"> </i>
 						<a class="delete-imbuement" data-tooltip="Remove Imbuement" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
 							<i class="fa-solid fa-fw fa-trash"></i>
 						</a>
@@ -213,7 +235,18 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
 
-	// Click on Edit Imbuement Button
+	// Click on Configure Imbuement Button
+	html.on('click', '.configure-imbuement', (event) => {
+		console.log(event);
+		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
+		const actorID = event.currentTarget.getAttribute('data-actor-id');
+		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
+			imbuementID
+		];
+		new ImbuementsSheetConfig().render(true);
+	});
+
+	// Click on Edit Imbuement Value Button
 	html.on('click', '.edit-imbuement-value', (event) => {
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
 		const actorID = event.currentTarget.getAttribute('data-actor-id');
@@ -257,7 +290,6 @@ Hooks.on('renderItemSheet', (itemSheet, html) => {
 				saveButton: {
 					label: 'Add Values',
 					callback: (html) => {
-						// console.log(html.find('input').val());
 						const imbuedValue = {
 							pp: addImbuementValue(
 								imbuement.imbuedValue.pp,

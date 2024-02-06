@@ -17,3 +17,9 @@
     align-items: center;
     justify-content: flex-end;
 }
+
+.imbuement-configuration {
+    padding: 0;
+    margin-top: 0;
+    gap: 1em;
+}
