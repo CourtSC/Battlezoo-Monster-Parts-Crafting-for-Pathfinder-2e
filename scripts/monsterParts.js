@@ -1,6 +1,10 @@
 class ImbuementsSheet {
 	static ID = 'Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e';
 
+	// const imbuedPropertiesData = foundry.utils.fetchJsonWithTimeout(
+	// 	'modules/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/data/imbuements.json'
+	// );
+
 	static FLAGS = {
 		IMBUEMENTS: 'imbuements',
 	};
@@ -37,6 +41,7 @@ class ImbuementsSheetData {
 			name: 'New Imbuement',
 			itemID,
 			actorID,
+			imbuedProperty: '',
 			imbuedValue: {
 				pp: 0,
 				gp: 0,
