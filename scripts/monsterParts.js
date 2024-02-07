@@ -7,6 +7,7 @@ class ImbuementsSheet {
 
 	static TEMPLATES = {
 		WeaponImbuedPropertiesSheet: `modules/${this.ID}/templates/weapon-imbued-properties-sheet.hbs`,
+		ImbuedPropertiesSheet: `modules/${this.ID}/templates/imbued-properties-sheet.hbs`,
 	};
 
 	static log(force, ...args) {
@@ -19,8 +20,8 @@ class ImbuementsSheet {
 		}
 	}
 
-	static initializeWeaponConfig() {
-		this.WeaponImbuementsSheetConfig = new WeaponImbuementsSheetConfig();
+	static initialize() {
+		this.ImbuementsConfigSheet = new ImbuementsConfigSheet();
 	}
 }
 
@@ -130,19 +131,50 @@ class ImbuementsSheetData {
 	}
 }
 
-class WeaponImbuementsSheetConfig extends FormApplication {
+class ImbuementsConfigSheet extends FormApplication {
+	async getItemType(options) {
+		const imbuedProperties = await foundry.utils.fetchJsonWithTimeout(
+			`modules/${ImbuementsSheet.ID}/data/imbuements.json`
+		);
+
+		switch (options.itemType) {
+			case 'weapon':
+				return {
+					template: ImbuementsSheet.TEMPLATES.WeaponImbuedPropertiesSheet,
+					imbuements: imbuedProperties.weapon,
+				};
+
+			case 'equipment':
+				return {
+					template: ImbuementsSheet.TEMPLATES.ImbuedPropertiesSheet,
+					imbuements: imbuedProperties.skill,
+				};
+
+			case 'armor':
+				return {
+					template: ImbuementsSheet.TEMPLATES.ImbuedPropertiesSheet,
+					imbuements: imbuedProperties.armor,
+				};
+
+			case 'shield':
+				return {
+					template: ImbuementsSheet.TEMPLATES.ImbuedPropertiesSheet,
+					imbuements: imbuedProperties.shield,
+				};
+		}
+	}
 	static get defaultOptions() {
 		const defaults = super.defaultOptions;
 
 		const overrides = {
-			id: 'weapon-imbuements-sheet',
-			template: ImbuementsSheet.TEMPLATES.WeaponImbuedPropertiesSheet,
+			id: `${this.itemType}-imbuement-config-sheet`,
 			title: 'Configure Imbuement',
 			closeOnSubmit: false,
 			submitOnChange: true,
 			actorID: this.actorID,
 			imbuementID: this.imbuementID,
 			itemID: this.itemID,
+			itemType: this.itemType,
 		};
 
 		const mergedOptions = foundry.utils.mergeObject(defaults, overrides);
@@ -151,21 +183,20 @@ class WeaponImbuementsSheetConfig extends FormApplication {
 	}
 
 	async getData(options) {
-		const imbuedProperties = await foundry.utils.fetchJsonWithTimeout(
-			`modules/${ImbuementsSheet.ID}/data/imbuements.json`
-		);
+		const itemData = await this.getItemType(options);
+		options.template = itemData.template;
+
 		ImbuementsSheet.log(false, 'getData options', {
 			options,
+			itemData,
 		});
+
 		return {
-			weaponProp: imbuedProperties.weapon,
-			skillProp: imbuedProperties.skill,
-			armorProp: imbuedProperties.armor,
-			shieldProp: imbuedProperties.shield,
-			perceptionProp: imbuedProperties.perception,
+			imbuements: itemData.imbuements,
 			actorID: options.actorID,
 			imbuementID: options.imbuementID,
 			itemID: options.itemID,
+			itemType: options.itemType,
 		};
 	}
 
@@ -206,6 +237,7 @@ class WeaponImbuementsSheetConfig extends FormApplication {
 	async _handleButtonClick(event) {
 		const clickedElement = $(event.currentTarget);
 		const action = clickedElement.data().action;
+		const itemType = clickedElement.data().itemType;
 		const actorID = clickedElement
 			.parents('[data-imbuement-id]')
 			.data()?.actorId;
@@ -218,39 +250,81 @@ class WeaponImbuementsSheetConfig extends FormApplication {
 			imbuementID
 		];
 
-		switch (action) {
-			case 'save': {
-				if (
-					imbuement.formDataProperty === '' ||
-					imbuement.formDataPath === ''
-				) {
-					ui.notifications.error('Cannot save blank fields.');
-					break;
-				} else {
-					const updateData = {
-						name: `${imbuement.formDataProperty} ${imbuement.formDataPath}`,
-						imbuedProperty: imbuement.formDataProperty,
-						imbuedPath: imbuement.formDataPath,
-					};
+		if (itemType === 'weapon') {
+			switch (action) {
+				case 'save': {
+					if (
+						imbuement.formDataProperty === '' ||
+						imbuement.formDataPath === ''
+					) {
+						ui.notifications.error('Cannot save blank fields.');
+						break;
+					} else {
+						const updateData = {
+							name: `${imbuement.formDataProperty} ${imbuement.formDataPath}`,
+							imbuedProperty: imbuement.formDataProperty,
+							imbuedPath: imbuement.formDataPath,
+						};
 
-					ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
-					ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+						ImbuementsSheetData.updateImbuement(
+							actorID,
+							imbuementID,
+							updateData
+						);
+						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+							formDataProperty: '',
+							formDataPath: '',
+						});
+						this.close();
+						break;
+					}
+				}
+
+				case 'cancel': {
+					const updateData = {
 						formDataProperty: '',
 						formDataPath: '',
-					});
+					};
+					ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
 					this.close();
 					break;
 				}
 			}
+		} else {
+			switch (action) {
+				case 'save': {
+					if (imbuement.formDataProperty === '') {
+						ui.notifications.error('Cannot save blank fields.');
+						break;
+					} else {
+						const updateData = {
+							name: imbuement.formDataProperty,
+							imbuedProperty: imbuement.formDataProperty,
+						};
 
-			case 'cancel': {
-				const updateData = {
-					formDataProperty: '',
-					formDataPath: '',
-				};
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
-				this.close();
-				break;
+						ImbuementsSheetData.updateImbuement(
+							actorID,
+							imbuementID,
+							updateData
+						);
+						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+							formDataProperty: '',
+							formDataPath: '',
+						});
+						this.close();
+						break;
+					}
+				}
+
+				case 'cancel': {
+					const updateData = {
+						formDataProperty: '',
+						formDataPath: '',
+					};
+					ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
+					this.close();
+					break;
+				}
 			}
 		}
 
@@ -261,6 +335,8 @@ class WeaponImbuementsSheetConfig extends FormApplication {
 			imbuementID,
 			itemID,
 			event,
+			itemType,
+			clickedElement: clickedElement.data(),
 		});
 	}
 }
@@ -270,7 +346,7 @@ Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
 });
 
 Hooks.once('init', () => {
-	ImbuementsSheet.initializeWeaponConfig();
+	ImbuementsSheet.initialize();
 });
 
 Hooks.on('renderItemSheet', async (itemSheet, html) => {
@@ -379,10 +455,18 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			imbuementID
 		];
 
-		ImbuementsSheet.WeaponImbuementsSheetConfig.render(true, {
+		ImbuementsSheet.log(false, {
 			actorID,
 			imbuementID,
 			itemID,
+			itemType,
+		});
+
+		ImbuementsSheet.ImbuementsConfigSheet.render(true, {
+			actorID,
+			imbuementID,
+			itemID,
+			itemType,
 		});
 	});
 

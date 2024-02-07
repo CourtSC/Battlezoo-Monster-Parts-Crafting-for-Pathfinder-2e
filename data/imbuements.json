@@ -8,7 +8,6 @@
         "properties": {
             "acid": {
                 "name": "Acid",
-                "type": "Weapon",
                 "parts": "The monster must have the acid trait or an attack or spell that deals acid damage.",
                 "effect": "You imbue the weapon with vitriolic acid.",
                 "path": {
@@ -61,8 +60,49 @@
             }
         }
     },
-    "skill": {},
-    "armor": {},
-    "shield": {},
-    "perception": {}
+    "skill": {
+        "charisma": {
+            "name": "Charisma"
+        },
+        "constitution": {
+            "name": "Constitution"
+        },
+        "dexterity": {
+            "name": "Dexterity"
+        },
+        "intelligence": {
+            "name": "Intelligence"
+        },
+        "sensory": {
+            "name": "Sensory"
+        },
+        "spell": {
+            "name": "Spell"
+        },
+        "strength": {
+            "name": "Strength"
+        },
+        "wisdom": {
+            "name": "Wisdom"
+        }
+    },
+    "armor": {
+        "energyResistant": {
+            "name": "Energy Resistant"
+        },
+        "fortification": {
+            "name": "Fortification"
+        },
+        "winged": {
+            "name": "Winged"
+        }
+    },
+    "shield": {
+        "energyResistant": {
+            "name": "Energy Resistant"
+        },
+        "sturdy": {
+            "name": "Sturdy"
+        }
+    }
 }

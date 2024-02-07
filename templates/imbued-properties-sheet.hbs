@@ -5,17 +5,8 @@
             <label>Property: </label>
             <select class="" name="imbued-property" id="imbued-property">
                 <option value=""></option>
-                {{#each imbuements.properties}}
-                    <option value="{{name}}">{{name}}</option>
-                {{/each}}
-            </select>
-        </div>
-        <div class="imbuement-path-div flexrow">
-            <label>Path: </label>
-            <select class="" name="imbuement-path" id="imbuement-path">
-                <option value=""></option>
-                {{#each imbuements.paths}}
-                    <option value="{{this}}">{{this}}</option>
+                {{#each imbuements}}
+                <option value="{{name}}">{{name}}</option>
                 {{/each}}
             </select>
         </div>
