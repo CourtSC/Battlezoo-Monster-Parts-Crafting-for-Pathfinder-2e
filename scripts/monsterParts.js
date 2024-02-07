@@ -6,8 +6,22 @@ class ImbuementsSheet {
 	};
 
 	static TEMPLATES = {
-		ImbuedPropertiesSheet: `modules/${this.ID}/templates/imbued-properties-sheet.hbs`,
+		WeaponImbuedPropertiesSheet: `modules/${this.ID}/templates/weapon-imbued-properties-sheet.hbs`,
 	};
+
+	static log(force, ...args) {
+		const shouldLog =
+			force ||
+			game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.ID);
+
+		if (shouldLog) {
+			console.log(this.ID, '|', ...args);
+		}
+	}
+
+	static initializeWeaponConfig() {
+		this.WeaponImbuementsSheetConfig = new WeaponImbuementsSheetConfig();
+	}
 }
 
 class ImbuementsSheetData {
@@ -35,15 +49,18 @@ class ImbuementsSheetData {
 			...imbuementData,
 			id: foundry.utils.randomID(16),
 			name: 'New Imbuement',
+			imbuedProperty: '',
+			imbuedPath: '',
 			itemID,
 			actorID,
-			imbuedProperty: '',
 			imbuedValue: {
 				pp: 0,
 				gp: 0,
 				sp: 0,
 				cp: 0,
 			},
+			formDataProperty: '',
+			formDataPath: '',
 		};
 
 		// construct the update to insert the new imbuement
@@ -113,14 +130,19 @@ class ImbuementsSheetData {
 	}
 }
 
-class ImbuementsSheetConfig extends FormApplication {
+class WeaponImbuementsSheetConfig extends FormApplication {
 	static get defaultOptions() {
 		const defaults = super.defaultOptions;
 
 		const overrides = {
-			id: 'imbuements-sheet',
-			template: ImbuementsSheet.TEMPLATES.ImbuedPropertiesSheet,
+			id: 'weapon-imbuements-sheet',
+			template: ImbuementsSheet.TEMPLATES.WeaponImbuedPropertiesSheet,
 			title: 'Configure Imbuement',
+			closeOnSubmit: false,
+			submitOnChange: true,
+			actorID: this.actorID,
+			imbuementID: this.imbuementID,
+			itemID: this.itemID,
 		};
 
 		const mergedOptions = foundry.utils.mergeObject(defaults, overrides);
@@ -132,13 +154,119 @@ class ImbuementsSheetConfig extends FormApplication {
 		const imbuedProperties = await foundry.utils.fetchJsonWithTimeout(
 			`modules/${ImbuementsSheet.ID}/data/imbuements.json`
 		);
+		ImbuementsSheet.log(false, 'getData options', {
+			options,
+		});
 		return {
-			weapon: imbuedProperties.weapon,
+			weaponProp: imbuedProperties.weapon,
+			skillProp: imbuedProperties.skill,
+			armorProp: imbuedProperties.armor,
+			shieldProp: imbuedProperties.shield,
+			perceptionProp: imbuedProperties.perception,
+			actorID: options.actorID,
+			imbuementID: options.imbuementID,
+			itemID: options.itemID,
 		};
+	}
+
+	async _updateObject(event, formData) {
+		const expandedData = foundry.utils.expandObject(formData);
+		const actorID = $(event.currentTarget)
+			.parents('[data-actor-id]')
+			?.data()?.actorId;
+		const imbuementID = $(event.currentTarget)
+			.parents('[data-imbuement-id]')
+			?.data()?.imbuementId;
+		const itemID = $(event.currentTarget)
+			.parents('[data-imbuement-id]')
+			.data()?.itemId;
+
+		ImbuementsSheet.log(false, 'saving', {
+			actorID,
+			imbuementID,
+			itemID,
+			formData,
+			expandedData,
+			event,
+		});
+		const updateData = {
+			// name: `${formData['imbued-property']} ${formData['imbuement-path']}`,
+			formDataProperty: formData['imbued-property'],
+			formDataPath: formData['imbuement-path'],
+		};
+
+		ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
+	}
+
+	activateListeners(html) {
+		super.activateListeners(html);
+		html.on('click', '[data-action]', this._handleButtonClick.bind(this));
+	}
+
+	async _handleButtonClick(event) {
+		const clickedElement = $(event.currentTarget);
+		const action = clickedElement.data().action;
+		const actorID = clickedElement
+			.parents('[data-imbuement-id]')
+			.data()?.actorId;
+		const imbuementID = clickedElement
+			.parents('[data-imbuement-id]')
+			.data()?.imbuementId;
+		const itemID = clickedElement.parents('[data-imbuement-id]').data()?.itemId;
+
+		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
+			imbuementID
+		];
+
+		switch (action) {
+			case 'save': {
+				const updateData = {
+					name: `${imbuement.formDataProperty} ${imbuement.formDataPath}`,
+					imbuedProperty: imbuement.formDataProperty,
+					imbuedPath: imbuement.formDataPath,
+				};
+
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+					formDataProperty: '',
+					formDataPath: '',
+				});
+				this.close();
+				break;
+			}
+
+			case 'cancel': {
+				const updateData = {
+					formDataProperty: '',
+					formDataPath: '',
+				};
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
+				this.close();
+				break;
+			}
+		}
+
+		ImbuementsSheet.log(true, 'Button clicked!', {
+			this: this,
+			action,
+			actorID,
+			imbuementID,
+			itemID,
+			event,
+		});
 	}
 }
 
+Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
+	registerPackageDebugFlag(ImbuementsSheet.ID);
+});
+
+Hooks.once('init', () => {
+	ImbuementsSheet.initializeWeaponConfig();
+});
+
 Hooks.on('renderItemSheet', async (itemSheet, html) => {
+	const itemType = itemSheet.object.type;
 	const itemSheetTabs = html.find('[class="tabs"]');
 	const ImbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
@@ -237,13 +365,17 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Click on Configure Imbuement Button
 	html.on('click', '.configure-imbuement', (event) => {
-		console.log(event);
-		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
 		const actorID = event.currentTarget.getAttribute('data-actor-id');
+		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
 		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
 			imbuementID
 		];
-		new ImbuementsSheetConfig().render(true);
+
+		ImbuementsSheet.WeaponImbuementsSheetConfig.render(true, {
+			actorID,
+			imbuementID,
+			itemID,
+		});
 	});
 
 	// Click on Edit Imbuement Value Button
@@ -308,7 +440,6 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 								parseInt(html.find(`#${imbuementID}-cp-value`).val())
 							),
 						};
-						// const imbuementName = html.find(`#${imbuementID}-name`).val();
 
 						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
 							imbuedValue: imbuedValue,
