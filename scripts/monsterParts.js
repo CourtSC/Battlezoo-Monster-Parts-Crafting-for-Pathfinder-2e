@@ -220,19 +220,27 @@ class WeaponImbuementsSheetConfig extends FormApplication {
 
 		switch (action) {
 			case 'save': {
-				const updateData = {
-					name: `${imbuement.formDataProperty} ${imbuement.formDataPath}`,
-					imbuedProperty: imbuement.formDataProperty,
-					imbuedPath: imbuement.formDataPath,
-				};
+				if (
+					imbuement.formDataProperty === '' ||
+					imbuement.formDataPath === ''
+				) {
+					ui.notifications.error('Cannot save blank fields.');
+					break;
+				} else {
+					const updateData = {
+						name: `${imbuement.formDataProperty} ${imbuement.formDataPath}`,
+						imbuedProperty: imbuement.formDataProperty,
+						imbuedPath: imbuement.formDataPath,
+					};
 
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
-					formDataProperty: '',
-					formDataPath: '',
-				});
-				this.close();
-				break;
+					ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
+					ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+						formDataProperty: '',
+						formDataPath: '',
+					});
+					this.close();
+					break;
+				}
 			}
 
 			case 'cancel': {
