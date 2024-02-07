@@ -392,7 +392,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		imbuedPropertiesSection.append(
 			`<div class="imbuement-form-group">
 				<fieldset>
-					<legend>${imbuement.name}</legend>
+					<legend class="imbuement-title">${imbuement.name}</legend>
 					<div class="imbuement-values">
 						${Number(
 							(
