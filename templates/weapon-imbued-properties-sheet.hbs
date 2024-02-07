@@ -1,27 +1,35 @@
 {{log 'weapon-imbued-properties-sheet' this}}
-<form data-actor-id="{{actorID}}" data-imbuement-id="{{imbuementID}}" data-item-id="{{itemID}}">
-    <div class="imbuement-configuration">
-        <div class="imbuement-property-div flexrow">
-            <label>Property: </label>
-            <select class="" name="imbued-property" id="imbued-property">
-                <option value=""></option>
-                {{#each imbuements.properties}}
-                    <option value="{{name}}">{{name}}</option>
-                {{/each}}
-            </select>
-        </div>
-        <div class="imbuement-path-div flexrow">
-            <label>Path: </label>
-            <select class="" name="imbuement-path" id="imbuement-path">
-                <option value=""></option>
-                {{#each imbuements.paths}}
-                    <option value="{{this}}">{{this}}</option>
-                {{/each}}
-            </select>
-        </div>
-    </div>
-    <div class="control-row flexcol">
-        <button type="button" data-action="save" data-item-type="{{itemType}}"><i class="fas fa-save"></i> Save Imbuement</button>
-        <button type="button" data-action="cancel"><i class="fa-solid fa-ban"></i></i> Cancel</button>
-    </div>
+<form
+	data-actor-id='{{actorID}}'
+	data-imbuement-id='{{imbuementID}}'
+	data-item-id='{{itemID}}'
+>
+	<div class='imbuement-configuration'>
+		<div class='imbuement-property-div flexrow'>
+			<label>Property: </label>
+			<select class='' name='imbued-property' id='imbued-property'>
+				<option value=''></option>
+				{{#each imbuements.properties}}
+					<option value='{{@key}}'>{{name}}</option>
+				{{/each}}
+			</select>
+		</div>
+		<div class='imbuement-path-div flexrow'>
+			<label>Path: </label>
+			<select class='' name='imbuement-path' id='imbuement-path'>
+				<option value=''></option>
+				{{#each imbuements.paths}}
+					<option value='{{@key}}'>{{this}}</option>
+				{{/each}}
+			</select>
+		</div>
+	</div>
+	<div class='control-row flexcol'>
+		<button type='button' data-action='save' data-item-type='{{itemType}}'><i
+				class='fas fa-save'
+			></i>
+			Save Imbuement</button>
+		<button type='button' data-action='cancel'><i class='fa-solid fa-ban'></i>
+			Cancel</button>
+	</div>
 </form>

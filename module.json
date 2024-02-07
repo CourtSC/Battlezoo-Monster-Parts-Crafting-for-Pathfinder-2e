@@ -1,40 +1,38 @@
 {
-  "id": "Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e",
-  "title": "Battlezoo Monster Parts Crafting for Pathfinder 2e",
-  "description": "A module that adds an Imbuements tab to item sheets to track imbued properties from the Monster Parts Crafting system from the Battlezoo Bestiary.",
-  "authors": [
-      {
-          "name": "DiceyCode"
-      }
-  ],
-  "version": "1.1",
-  "compatibility": {
-      "minimum": "11.315",
-      "verified": "11.315"
-  },
-  "relationships": {
-      "systems": [{
-        "id": "pf2e",
-        "type": "system",
-        "manifest": "https://github.com/foundryvtt/pf2e/releases/latest/download/system.json",
-        "compatibility": {
-          "minimum": "4.0.6"
-        }
-      }]
-    },
-    "scripts": [
-      "scripts/monsterParts.js"
-    ],
-    "languages": [
-      {
-          "lang": "en",
-          "name": "English",
-          "path": "languages/en.json"
-      }
-    ],
-    "styles": [
-      "styles/monsterParts.css"
-    ],
-    "manifest": "https://raw.githubusercontent.com/CourtSC/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/main/module.json",
-    "download": "https://github.com/CourtSC/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/archive/refs/heads/main.zip"
+	"id": "Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e",
+	"title": "Battlezoo Monster Parts Crafting for Pathfinder 2e",
+	"description": "A module that adds an Imbuements tab to item sheets to track imbued properties from the Monster Parts Crafting system from the Battlezoo Bestiary.",
+	"authors": [
+		{
+			"name": "DiceyCode"
+		}
+	],
+	"version": "1.1.1",
+	"compatibility": {
+		"minimum": "11.315",
+		"verified": "11.315"
+	},
+	"relationships": {
+		"systems": [
+			{
+				"id": "pf2e",
+				"type": "system",
+				"manifest": "https://github.com/foundryvtt/pf2e/releases/latest/download/system.json",
+				"compatibility": {
+					"minimum": "4.0.6"
+				}
+			}
+		]
+	},
+	"scripts": ["scripts/monsterParts.js"],
+	"languages": [
+		{
+			"lang": "en",
+			"name": "English",
+			"path": "languages/en.json"
+		}
+	],
+	"styles": ["styles/monsterParts.css"],
+	"manifest": "https://raw.githubusercontent.com/CourtSC/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/main/module.json",
+	"download": "https://github.com/CourtSC/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/archive/refs/heads/main.zip"
 }
