@@ -45,18 +45,24 @@
 }
 
 .gold-value-input {
-    max-width: 50px;
+    max-width: 70px;
 }
 
 .add-gold-button {
     color: green;
-    max-width: fit-content;
+    max-width: 30px;
     max-height: fit-content;
     padding-left: 3px;
 }
 
 .subtract-gold-button {
     color: red;
-    max-width: fit-content;
+    max-width: 30px;
     max-height: fit-content;
+}
+
+.imbuement-data {
+    max-width: 50%;
+    max-height: fit-content;
+    align-items: center;
 }
