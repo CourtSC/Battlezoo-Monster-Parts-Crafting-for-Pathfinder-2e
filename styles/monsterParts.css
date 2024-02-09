@@ -13,18 +13,50 @@
 }
 
 .imbuement-fieldset-controls {
-    display: flex;
+    padding-top: 6px;
+    justify-content: flex-end;
     align-items: center;
+}
+
+.edit-controls {
+    display: flex;
     justify-content: flex-end;
     gap: 3px;
 }
 
 .imbuement-configuration {
-    padding: 0;
+    padding: 3px;
     margin-top: 0;
-    gap: 1em;
+    gap: 3px;
 }
 
 .imbuement-title {
     text-transform: capitalize;
+    justify-content: flex-start;
+}
+
+.window-title {
+    text-transform: capitalize;
+}
+
+.investment-value-controls {
+    align-items: center;
+    max-width: fit-content;
+}
+
+.gold-value-input {
+    max-width: 50px;
+}
+
+.add-gold-button {
+    color: green;
+    max-width: fit-content;
+    max-height: fit-content;
+    padding-left: 3px;
+}
+
+.subtract-gold-button {
+    color: red;
+    max-width: fit-content;
+    max-height: fit-content;
 }

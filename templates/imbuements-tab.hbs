@@ -1,0 +1,74 @@
+<section class='tab imbuements' data-tab='imbuements'>
+	<div class='imbuements'>
+		<div class='imbuement-form-group'>
+			{{#each imbuements}}
+				<fieldset>
+					<legend class='imbuement-title'>{{name}}</legend>
+					<div class='imbuement-value'>{{imbuedValue}} gp</div>
+					<div class='imbuement-fieldset-controls flexrow'>
+						<div class='investment-value-controls flexrow'>
+							<label
+								class='gold-value-label'
+								for='gold-value-input'
+							>Gold:</label>
+							<input
+								class='gold-value-input'
+								type='number'
+								name='gold-value-input'
+								id='gold-value-input'
+								data-tooltip='Enter value to invest'
+								value=''
+								placeholder='0'
+								min='0'
+								step='1'
+								data-actor-id='{{actorID}}'
+								data-imbuement-id='{{id}}'
+								data-item-id='{{itemID}}'
+							/>
+							<button
+								class='add-gold-button'
+								data-action='submit-add-gold'
+								data-tooltip='Add Value'
+								data-actor-id='{{actorID}}'
+								data-imbuement-id='{{id}}'
+								data-item-id='{{itemID}}'
+							><i class='fa-solid fa-plus'></i></button>
+							<button
+								class='subtract-gold-button'
+								data-action='submit-subtract-gold'
+								data-tooltip='Subtract Value'
+								data-actor-id='{{actorID}}'
+								data-imbuement-id='{{id}}'
+								data-item-id='{{itemID}}'
+							><i class='fa-solid fa-minus'></i></button>
+						</div>
+						<div class='edit-controls'>
+							<a
+								class='configure-imbuement'
+								data-tooltip='Configure Imbuement'
+								data-actor-id='{{actorID}}'
+								data-imbuement-id='{{id}}'
+							>
+								<i class='fas fa-edit'> </i>
+							</a>
+							<a
+								class='delete-imbuement'
+								data-tooltip='Remove Imbuement'
+								data-actor-id='{{actorID}}'
+								data-imbuement-id='{{id}}'
+							>
+								<i class='fa-solid fa-fw fa-trash'></i>
+							</a>
+						</div>
+					</div>
+				</fieldset>
+			{{/each}}
+		</div>
+		<div class='add-imbuement'>
+			<a class='new-imbuement'>
+				<i class='fa-solid fa-plus'></i>
+				New Imbuement
+			</a>
+		</div>
+	</div>
+</section>

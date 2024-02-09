@@ -8,6 +8,7 @@ class ImbuementsSheet {
 	static TEMPLATES = {
 		WeaponImbuedPropertiesSheet: `modules/${this.ID}/templates/weapon-imbued-properties-sheet.hbs`,
 		ImbuedPropertiesSheet: `modules/${this.ID}/templates/imbued-properties-sheet.hbs`,
+		ItemSheetImbuementsTab: `modules/${this.ID}/templates/imbuements-tab.hbs`,
 	};
 
 	static log(force, ...args) {
@@ -22,6 +23,30 @@ class ImbuementsSheet {
 
 	static initialize() {
 		this.ImbuementsConfigSheet = new ImbuementsConfigSheet();
+		this.ImbuementsTab = new ImbuementsTab();
+	}
+
+	static async renderImbuementsTab(html, itemID, actorID) {
+		const itemSheetTabs = html.find('[class="tabs"]');
+		const ImbuementsSheetBody = html.find('[class="sheet-body"]');
+		const itemImbuements = ImbuementsSheetData.getImbuementsForItem(
+			actorID,
+			itemID
+		);
+
+		ImbuementsSheet.log(false, 'itemImbuements', ' | ', itemImbuements);
+
+		// Inject Imbuements tab.
+		itemSheetTabs.append(
+			`<a class='list-row' data-tab='imbuements'>Imbuements</a>`
+		);
+
+		// Render and inject the sheet Body.
+		const renderedTemplate = await renderTemplate(
+			ImbuementsSheet.TEMPLATES.ItemSheetImbuementsTab,
+			{ imbuements: itemImbuements }
+		);
+		ImbuementsSheetBody.append(renderedTemplate);
 	}
 }
 
@@ -54,12 +79,7 @@ class ImbuementsSheetData {
 			imbuedPath: '',
 			itemID,
 			actorID,
-			imbuedValue: {
-				pp: 0,
-				gp: 0,
-				sp: 0,
-				cp: 0,
-			},
+			imbuedValue: 0,
 			formDataProperty: '',
 			formDataPath: '',
 		};
@@ -69,7 +89,7 @@ class ImbuementsSheetData {
 			[newImbuement.id]: newImbuement,
 		};
 
-		console.log(newImbuements);
+		ImbuementsSheet.log(false, 'Imbuement created' | { newImbuements });
 
 		return this.getItemFromActorInventory(actorID, itemID)?.setFlag(
 			ImbuementsSheet.ID,
@@ -101,11 +121,17 @@ class ImbuementsSheetData {
 
 	static updateImbuement(actorID, imbuementID, updateData) {
 		const relevantImbuement = this.allImbuements[imbuementID];
-
 		// construct the update to send
 		const update = {
 			[imbuementID]: updateData,
 		};
+
+		ImbuementsSheet.log(false, 'Updating imbuement', ' | ', {
+			relevantImbuement,
+			update,
+			actorID,
+			imbuementID,
+		});
 
 		return this.getItemFromActorInventory(
 			actorID,
@@ -245,7 +271,6 @@ class ImbuementsConfigSheet extends FormApplication {
 			.parents('[data-imbuement-id]')
 			.data()?.imbuementId;
 		const itemID = clickedElement.parents('[data-imbuement-id]').data()?.itemId;
-
 		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
 			imbuementID
 		];
@@ -328,7 +353,7 @@ class ImbuementsConfigSheet extends FormApplication {
 			}
 		}
 
-		ImbuementsSheet.log(true, 'Button clicked!', {
+		ImbuementsSheet.log(false, 'Button clicked!', {
 			this: this,
 			action,
 			actorID,
@@ -350,12 +375,16 @@ Hooks.once('init', () => {
 });
 
 Hooks.on('renderItemSheet', async (itemSheet, html) => {
+	ImbuementsSheet.log(false, 'renderItemSheet', ' | ', {
+		itemSheet,
+		html,
+	});
+
 	const itemType = itemSheet.object.type;
-	const itemSheetTabs = html.find('[class="tabs"]');
-	const ImbuementsSheetBody = html.find('[class="sheet-body"]');
 	const itemID = itemSheet.object._id;
 	const actorID = itemSheet.actor._id;
 
+	// Bind the current tab.
 	// This is the callback function.
 	function customCallback(event, tabs, active) {
 		this._onChangeTab(event, tabs, active);
@@ -369,77 +398,24 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		itemSheet._tabs[0]._customCallback = newCallback;
 	}
 
-	itemSheetTabs.append(
-		`<a class='list-row' data-tab='imbuements'>Imbuements</a>`
-	);
-
-	ImbuementsSheetBody.append(
-		`<section class="tab imbuements" data-tab="imbuements">
-			<div class="imbuements">
-			</div> 
-		</section>`
-	);
-
-	// Populate the Imbuements sheet with existing imbuements
-	const imbuedPropertiesSection = html.find('[class="imbuements"]');
-	for (let imbuementID in ImbuementsSheetData.getImbuementsForItem(
-		actorID,
-		itemID
-	)) {
-		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
-			imbuementID
-		];
-		imbuedPropertiesSection.append(
-			`<div class="imbuement-form-group">
-				<fieldset>
-					<legend class="imbuement-title">${imbuement.name}</legend>
-					<div class="imbuement-values">
-						${Number(
-							(
-								parseInt(imbuement.imbuedValue.pp) * 10 +
-								parseInt(imbuement.imbuedValue.gp) +
-								parseInt(imbuement.imbuedValue.sp) / 10 +
-								parseInt(imbuement.imbuedValue.cp) / 100
-							).toFixed(2)
-						)} gp
-					</div>
-					<div class="imbuement-fieldset-controls">
-						<a class="configure-imbuement" data-tooltip="Configure Imbuement" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
-							<i class="fas fa-edit"> </i>
-						<a class="edit-imbuement-value" data-tooltip="Edit Imbuement Value" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
-							<i class="fa-solid fa-coins"> </i>
-						<a class="delete-imbuement" data-tooltip="Remove Imbuement" data-actor-id="${actorID}" data-imbuement-id="${imbuementID}">
-							<i class="fa-solid fa-fw fa-trash"></i>
-						</a>
-					</div>
-				</fieldset>
-			</div>`
-		);
-	}
-
-	// New Imbuement button
-	imbuedPropertiesSection.append(
-		`<div class="add-imbuement">
-			<a class="new-imbuement">
-				<i class="fa-solid fa-plus"></i> New Imbuement
-			</a>
-		</div>`
-	);
+	await ImbuementsSheet.renderImbuementsTab(html, itemID, actorID);
 
 	// Click on New Imbuements button
 	html.on('click', '.new-imbuement', (event) => {
-		console.log('Imbuement created.');
-		ImbuementsSheetData.createImbuement(actorID, itemID, {
-			label: foundry.utils.randomID(16),
-		});
+		ImbuementsSheetData.createImbuement(actorID, itemID, {});
 		event.stopPropagation();
 		return false;
 	});
 
 	// click on Remove Imbuement button
 	html.on('click', '.delete-imbuement', (event) => {
-		console.log('Imbuement deleted.');
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
+		ImbuementsSheet.log(
+			false,
+			'Imbuement deleted',
+			' | ',
+			ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[imbuementID]
+		);
 		ImbuementsSheetData.deleteImbuement(actorID, imbuementID);
 		event.stopPropagation();
 		return false;
@@ -449,11 +425,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Click on Configure Imbuement Button
 	html.on('click', '.configure-imbuement', (event) => {
-		const actorID = event.currentTarget.getAttribute('data-actor-id');
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
-		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
-			imbuementID
-		];
 
 		ImbuementsSheet.log(false, {
 			actorID,
@@ -468,85 +440,131 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			itemID,
 			itemType,
 		});
+		event.stopPropagation();
 	});
 
-	// Click on Edit Imbuement Value Button
-	html.on('click', '.edit-imbuement-value', (event) => {
-		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
-		const actorID = event.currentTarget.getAttribute('data-actor-id');
+	// Click on + button
+	html.on('click', '.add-gold-button', (event) => {
+		const clickedElement = event.currentTarget;
+		const imbuementID = clickedElement.getAttribute('data-imbuement-id');
 		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
 			imbuementID
 		];
-		const editImbuementDialog = `
-				<form autocomplete="off">
-					<div class="form-group">
-						<label>Platinum:</label>
-						<input id="${imbuementID}-pp-value" type="number" value="0" step="1"></input>
-					</div>
-					<div class="form-group">
-						<label>Gold:</label>
-						<input id="${imbuementID}-gp-value" type="number" value="0" step="1"></input>
-					</div>
-					<div class="form-group">
-						<label>Silver:</label>
-						<input id="${imbuementID}-sp-value" type="number" value="0" step="1"></input>
-					</div>
-					<div class="form-group">
-						<label>Copper:</label>
-						<input id="${imbuementID}-cp-value" type="number" value="0" step="1"></input>
-					</div>
-				</form>
-						`;
+		const changeValue = Number(clickedElement.previousElementSibling.value);
 
-		const addImbuementValue = (currentVal, addedVal) => {
-			if (isNaN(addedVal)) {
-				console.log(addedVal);
-				return currentVal;
-			} else {
-				return parseInt(currentVal) + addedVal;
-			}
-		};
+		switch (true) {
+			case Number.isInteger(changeValue) && changeValue > 0:
+				// Valid input.
+				ImbuementsSheet.log(false, 'add-gold-button clicked | ', {
+					event,
+					imbuementID,
+					actorID,
+					itemID,
+					changeValue,
+					imbuement,
+				});
 
-		const editWindowDialog = new Dialog({
-			title: imbuement.name,
-			content: editImbuementDialog,
-			buttons: {
-				saveButton: {
-					label: 'Add Values',
-					callback: (html) => {
-						const imbuedValue = {
-							pp: addImbuementValue(
-								imbuement.imbuedValue.pp,
-								parseInt(html.find(`#${imbuementID}-pp-value`).val())
-							),
-							gp: addImbuementValue(
-								imbuement.imbuedValue.gp,
-								parseInt(html.find(`#${imbuementID}-gp-value`).val())
-							),
-							sp: addImbuementValue(
-								imbuement.imbuedValue.sp,
-								parseInt(html.find(`#${imbuementID}-sp-value`).val())
-							),
-							cp: addImbuementValue(
-								imbuement.imbuedValue.cp,
-								parseInt(html.find(`#${imbuementID}-cp-value`).val())
-							),
-						};
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+					imbuedValue: imbuement.imbuedValue + changeValue,
+				});
+				event.stopPropagation();
+				break;
 
-						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
-							imbuedValue: imbuedValue,
-						});
-					},
-					icon: `<i class="fas fa-save"></i>`,
-				},
-			},
-			default: 'saveButton',
-			close: (html) => {
-				console.log(html);
-			},
+			case !Number.isInteger(changeValue):
+				// Input is not an integer.
+				ImbuementsSheet.log(true, 'Add Gold | ', { changeValue });
+				ui.notifications.error(
+					'Cannot add decimal gold values. Please enter a whole number integer.'
+				);
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+				event.stopPropagation();
+				break;
+
+			case changeValue < 0:
+				// Input is less than 0
+				ui.notifications.error(
+					'Cannot add negative gold values. Please enter a whole number integer.'
+				);
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+				event.stopPropagation();
+				break;
+
+			case isNaN(changeValue):
+				// Input is not a number.
+				ui.notifications.error(
+					'Cannot add non-number gold values. Please enter a whole number integer.'
+				);
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+				event.stopPropagation();
+				break;
+		}
+	});
+
+	// Click on - button
+	html.on('click', '.subtract-gold-button', (event) => {
+		const clickedElement = event.currentTarget;
+		const imbuementID = clickedElement.getAttribute('data-imbuement-id');
+		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
+			imbuementID
+		];
+		const changeValue = Number(
+			clickedElement.previousElementSibling.previousElementSibling.value
+		);
+
+		ImbuementsSheet.log(false, 'Subtract Gold Button Clicked | ', {
+			event,
+			imbuementID,
+			actorID,
+			itemID,
+			changeValue,
+			imbuement,
 		});
-		editWindowDialog.render(true);
-		event.stopPropagation();
-		return false;
+
+		switch (true) {
+			case Number.isInteger(changeValue) && changeValue > 0:
+				// Valid input.
+				ImbuementsSheet.log(false, 'subtract-gold-button clicked | ', {
+					event,
+					imbuementID,
+					actorID,
+					itemID,
+					changeValue,
+					imbuement,
+				});
+
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+					imbuedValue: imbuement.imbuedValue - changeValue,
+				});
+				event.stopPropagation();
+				break;
+
+			case !Number.isInteger(changeValue):
+				// Input is not an integer.
+				ImbuementsSheet.log(true, 'Subtract Gold | ', { changeValue });
+				ui.notifications.error(
+					'Cannot add decimal gold values. Please enter a whole number integer.'
+				);
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+				event.stopPropagation();
+				break;
+
+			case changeValue < 0:
+				// Input is less than 0
+				ui.notifications.error(
+					'Cannot add negative gold values. Please enter a whole number integer.'
+				);
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+				event.stopPropagation();
+				break;
+
+			case isNaN(changeValue):
+				// Input is not a number.
+				ui.notifications.error(
+					'Cannot add non-number gold values. Please enter a whole number integer.'
+				);
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+				event.stopPropagation();
+				break;
+		}
 	});
 });
