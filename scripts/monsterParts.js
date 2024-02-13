@@ -14,7 +14,7 @@ class MonsterParts {
 
 	static DATA = {
 		IMBUEMENTDATA: `modules/${MonsterParts.ID}/data/imbuements.json`,
-		LEVELDATA: `modules/${MonsterParts.ID}/data/levels.json`,
+		REFINEMENTLEVELDATA: `modules/${MonsterParts.ID}/data/refinementLevels.json`,
 	};
 
 	static log(force, ...args) {
@@ -69,28 +69,45 @@ class RefinementSheetData {
 		return game.actors.get(actorID).items.get(itemID);
 	}
 
-	// Initialize refinement flags
-	static initializeRefinement(itemSheet) {
-		if (
-			itemSheet.type === 'weapon' ||
-			itemSheet.type === 'armor' ||
-			itemSheet.type === 'shield'
-		) {
-			itemSheet.update({ system: { specific: { material: {}, runes: {} } } });
+	// Add or remove imbuements based on potency.
+	static updateImbuementCount(
+		numImbuements,
+		potency,
+		actorID,
+		itemID,
+		imbuements
+	) {
+		if (numImbuements < potency) {
+			for (let i = numImbuements; i < potency; i++) {
+				ImbuementsSheetData.createImbuement(actorID, itemID, {
+					property: i + 1,
+				});
+			}
+		} else if (numImbuements > potency) {
+			for (let i = numImbuements; i > potency; i--) {
+				for (let imbuement in imbuements) {
+					MonsterParts.log(false, 'deleteImbuement on Refinement update | ', {
+						imbuement: imbuements[imbuement],
+						i,
+					});
+					if (imbuements[imbuement].property === i) {
+						ImbuementsSheetData.deleteImbuement(
+							actorID,
+							imbuements[imbuement].id
+						);
+						break;
+					}
+				}
+			}
 		}
-
-		itemSheet.setFlag(MonsterParts.ID, MonsterParts.FLAGS.REFINEMENT, {
-			imbuements: 0,
-		});
-		return;
 	}
 
 	// Update the item's refinement data
-	static async updateRefinement(itemSheet, updateData) {
+	static async updateRefinement(itemSheet, itemValue, updateData) {
 		const itemType = itemSheet.type;
-		const levelData = await this.getLevelData(updateData.newValue, itemType);
-		const itemLevel = levelData.itemLevel;
 		const actorID = itemSheet.parent._id;
+		const levelData = await this.getLevelData(itemValue, itemType, actorID);
+		const itemLevel = levelData.itemLevel;
 		const itemID = itemSheet._id;
 		const imbuements = ImbuementsSheetData.getImbuementsForItem(
 			actorID,
@@ -113,36 +130,18 @@ class RefinementSheetData {
 				const weaponPotency = levelData.levels[`${itemLevel}`].potency;
 				const striking = levelData.levels[`${itemLevel}`].striking;
 
-				if (numImbuements < weaponPotency) {
-					for (let i = numImbuements; i < weaponPotency; i++) {
-						ImbuementsSheetData.createImbuement(actorID, itemID, {
-							property: i + 1,
-						});
-					}
-				} else if (numImbuements > weaponPotency) {
-					for (let i = numImbuements; i > weaponPotency; i--) {
-						for (let imbuement in imbuements) {
-							MonsterParts.log(
-								false,
-								'deleteImbuement on Refinement update | ',
-								{
-									imbuement: imbuements[`${imbuement}`],
-									i,
-								}
-							);
-							if (imbuements[`${imbuement}`].property === i) {
-								ImbuementsSheetData.deleteImbuement(
-									actorID,
-									imbuements[`${imbuement}`].id
-								);
-							}
-						}
-					}
-				}
+				this.updateImbuementCount(
+					numImbuements,
+					weaponPotency,
+					actorID,
+					itemID,
+					imbuements
+				);
 
 				await itemSheet.update({
 					system: {
-						price: { value: { gp: updateData.newValue } },
+						specific: { material: {}, runes: {} },
+						price: { value: { gp: itemValue } },
 						level: { value: itemLevel },
 						runes: { potency: weaponPotency, striking },
 					},
@@ -153,38 +152,108 @@ class RefinementSheetData {
 				const armorPotency = levelData.levels[`${itemLevel}`].potency;
 				const resilient = levelData.levels[`${itemLevel}`].resilient;
 
+				this.updateImbuementCount(
+					numImbuements,
+					armorPotency,
+					actorID,
+					itemID,
+					imbuements
+				);
+
 				await itemSheet.update({
 					system: {
-						price: { value: { gp: updateData.newValue } },
+						specific: { material: {}, runes: {} },
+						price: { value: { gp: itemValue } },
 						level: { value: itemLevel },
 						runes: { potency: armorPotency, resilient },
 					},
 				});
 				break;
 
-			case 'shield':
+			case 'equipment':
+				const imbuementCount = levelData.levels[`${itemLevel}`].imbuements;
+
+				this.updateImbuementCount(
+					numImbuements,
+					imbuementCount,
+					actorID,
+					itemID,
+					imbuements
+				);
+
+				await itemSheet.update({
+					system: {
+						price: { value: { gp: itemValue } },
+						level: { value: itemLevel },
+					},
+				});
 				break;
 
-			case 'equipment':
+			case 'shield':
+				const sourceID = itemSheet.flags.core.sourceId;
+				const sourceFields = sourceID.split('.');
+				const compendiumName = `${sourceFields[1]}.${sourceFields[2]}`;
+				const compendiumItemID = sourceFields.at(-1);
+				const compendiumPack = game.packs.get(compendiumName);
+				const compendiumItem = await compendiumPack.getDocument(
+					compendiumItemID
+				);
+
+				const hardness = levelData.levels[`${itemLevel}`].hardness
+					? levelData.levels[`${itemLevel}`].hardness
+					: compendiumItem.system.hardness;
+				const hitPoints = levelData.levels[`${itemLevel}`].hp
+					? levelData.levels[`${itemLevel}`].hp
+					: compendiumItem.system.hp.max;
+				const brokenThreshold = levelData.levels[`${itemLevel}`].brokenThreshold
+					? levelData.levels[`${itemLevel}`].brokenThreshold
+					: compendiumItem.system.hp.brokenThreshold;
+
+				this.updateImbuementCount(
+					numImbuements,
+					0,
+					actorID,
+					itemID,
+					imbuements
+				);
+
+				await itemSheet.update({
+					system: {
+						specific: { material: {}, runes: {} },
+						price: { value: { gp: itemValue } },
+						level: { value: itemLevel },
+						hardness,
+						hp: {
+							max: hitPoints,
+							brokenThreshold,
+						},
+					},
+				});
+
+				MonsterParts.log(false, 'shield refinement update | ', {
+					hardness,
+					hitPoints,
+					brokenThreshold,
+					sourceFields,
+					compendiumItem,
+					compendiumName,
+					compendiumPack,
+					compendiumItemID,
+				});
 				break;
 		}
-
-		// itemSheet.setFlag(
-		// 	MonsterParts.ID,
-		// 	MonsterParts.FLAGS.REFINEMENT,
-		// 	updateData
-		// );
 	}
 
-	static async getLevelData(itemValue, itemType) {
+	static async getLevelData(itemValue, itemType, actorID) {
 		const levelData = await foundry.utils.fetchJsonWithTimeout(
-			MonsterParts.DATA.LEVELDATA
+			MonsterParts.DATA.REFINEMENTLEVELDATA
 		);
 		const itemLevel = Number(
 			Object.keys(levelData[itemType]).find(
 				(key) => levelData[itemType][key].threshold > itemValue
 			) - 1
 		);
+		const actorLevel = game.actors.get(actorID).level;
 
 		MonsterParts.log(false, 'getLevelData | ', {
 			levelData,
@@ -192,13 +261,15 @@ class RefinementSheetData {
 			itemLevel,
 			itemType,
 			itemValue,
+			actorLevel,
 		});
 
-		if (isNaN(itemLevel)) {
-			return { itemLevel: 20, levels: levelData[itemType] };
-		} else {
-			return { itemLevel, levels: levelData[itemType] };
-		}
+		const lowerLevel =
+			itemLevel || itemLevel === 0
+				? Math.min(actorLevel, itemLevel)
+				: actorLevel;
+
+		return { itemLevel: lowerLevel, levels: levelData[itemType] };
 	}
 }
 
@@ -517,49 +588,34 @@ Hooks.once('init', () => {
 	MonsterParts.initialize();
 });
 
-Hooks.on('createItem', (itemSheet, html) => {
-	// When an item is created in the world (dragged from the sidebar to an actor), initialize refinement data.
-	MonsterParts.log(false, 'createItem Hook | ', {
-		itemSheet,
-		html,
-	});
+Hooks.on('updateActor', (characterSheet) => {
+	const actorID = characterSheet._id;
 
-	RefinementSheetData.initializeRefinement(itemSheet);
+	for (let idx in characterSheet.items._source) {
+		const item = characterSheet.items._source[idx];
+		const itemType = item.type;
+
+		if (['weapon', 'armor', 'shield', 'equipment'].includes(itemType)) {
+			MonsterParts.log(false, 'updateActor | ', {
+				characterSheet,
+				inventory: characterSheet.items._source,
+				actorID,
+				item,
+				itemType,
+			});
+
+			const itemSheet = game.actors.get(actorID).items.get(item._id);
+
+			RefinementSheetData.updateRefinement(
+				itemSheet,
+				item.system.price.value.gp,
+				{}
+			);
+		}
+	}
 });
 
-// Hooks.on('updateItem', async (itemSheet, html) => {
-// 	const currLevel = itemSheet.system.level.value;
-// 	const itemValue = itemSheet.system.price.value.gp;
-// 	const itemType = itemSheet.type;
-
-// 	const newLevel = await RefinementSheetData.getLevelData(itemValue, itemType);
-
-// 	MonsterParts.log(false, 'updateItem | ', {
-// 		itemSheet,
-// 		html,
-// 		itemValue,
-// 		itemType,
-// 		currLevel,
-// 		newLevel,
-// 	});
-
-// 	if (currLevel !== newLevel) {
-// 		return RefinementSheetData.updateRefinement(itemSheet, {
-// 			newValue: itemValue,
-// 		});
-// 	} else {
-// 		return;
-// 	}
-// });
-
 Hooks.on('renderItemSheet', async (itemSheet, html) => {
-	// Initialize refinement if not already present
-	if (
-		!itemSheet.object.getFlag(MonsterParts.ID, MonsterParts.FLAGS.REFINEMENT)
-	) {
-		RefinementSheetData.initializeRefinement(itemSheet.object);
-	}
-
 	const itemType = itemSheet.object.type;
 	const itemID = itemSheet.object._id;
 	const actorID = itemSheet.actor._id;
@@ -586,20 +642,6 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	}
 
 	await MonsterParts.renderMonsterPartsTab(html, itemID, actorID, itemSheet);
-
-	// click on Remove Imbuement button
-	html.on('click', '.delete-imbuement', (event) => {
-		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
-		MonsterParts.log(
-			false,
-			'Imbuement deleted',
-			' | ',
-			ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[imbuementID]
-		);
-		ImbuementsSheetData.deleteImbuement(actorID, imbuementID);
-		event.stopPropagation();
-		return false;
-	});
 
 	// Set active tab to Monster Parts
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
@@ -643,12 +685,10 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			// Valid input.
 			switch (action) {
 				case 'refine-add-gold':
-					const currValue = itemSheet.object.system.price.value.goldValue;
+					const currValue = itemSheet.object.system.price.value.gp;
 					const newValue = currValue + changeValue;
 					// Update the item.
-					RefinementSheetData.updateRefinement(itemSheet.object, {
-						newValue,
-					});
+					RefinementSheetData.updateRefinement(itemSheet.object, newValue, {});
 					event.stopPropagation();
 					break;
 
@@ -712,19 +752,19 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			// Valid input.
 			switch (action) {
 				case 'refine-subtract-gold':
-					const currValue = itemSheet.object.system.price.value.goldValue;
+					const currValue = itemSheet.object.system.price.value.gp;
 					const newValue = currValue - changeValue;
 					// Update the item's value.
 					if (newValue > 0) {
-						RefinementSheetData.updateRefinement(itemSheet.object, {
+						RefinementSheetData.updateRefinement(
+							itemSheet.object,
 							newValue,
-						});
+							{}
+						);
 						event.stopPropagation();
 						break;
 					} else {
-						RefinementSheetData.updateRefinement(itemSheet.object, {
-							newValue: 0,
-						});
+						RefinementSheetData.updateRefinement(itemSheet.object, 0, {});
 						event.stopPropagation();
 						break;
 					}
