@@ -66,3 +66,9 @@
     max-height: fit-content;
     align-items: center;
 }
+
+.refinement-data {
+    max-width: 50%;
+    max-height: fit-content;
+    align-items: center;
+}
