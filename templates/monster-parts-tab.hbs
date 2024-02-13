@@ -1,4 +1,53 @@
-<section class='tab imbuements' data-tab='imbuements'>
+<section class='tab monster-parts' data-tab='monster-parts'>
+	<div class='refinment'>
+		<fieldset>
+			<legend class='refinement-title'>Refinement</legend>
+			<div class='refinement-data'>
+				<div class='form-group'>
+					<b>Current Value:</b>
+					<p
+						class='refinement-value'
+						id='refinement-value'
+					>{{itemSheet.object.system.price.value.gp}} gp</p>
+				</div>
+			</div>
+			<div class='refinement-fieldset-controls flexrow'>
+				<div class='investment-value-controls flexrow'>
+					<label class='gold-value-label' for='gold-value-input'>Add Parts:</label>
+					<input
+						class='gold-value-input'
+						type='number'
+						name='gold-value-input'
+						id='gold-value-input'
+						data-tooltip='Enter value to invest'
+						value=''
+						placeholder='0 gp'
+						min='0'
+						step='1'
+						data-actor-id='{{actorID}}'
+						data-imbuement-id='{{id}}'
+						data-item-id='{{itemID}}'
+					/>
+					<button
+						class='add-gold-button'
+						data-action='refine-add-gold'
+						data-tooltip='Add Value'
+						data-actor-id='{{actorID}}'
+						data-imbuement-id='{{id}}'
+						data-item-id='{{itemID}}'
+					><i class='fa-solid fa-plus'></i></button>
+					<button
+						class='subtract-gold-button'
+						data-action='refine-subtract-gold'
+						data-tooltip='Subtract Value'
+						data-actor-id='{{actorID}}'
+						data-imbuement-id='{{id}}'
+						data-item-id='{{itemID}}'
+					><i class='fa-solid fa-minus'></i></button>
+				</div>
+			</div>
+		</fieldset>
+	</div>
 	<div class='imbuements'>
 		<div class='imbuement-form-group'>
 			{{#each imbuements}}
@@ -30,7 +79,7 @@
 							/>
 							<button
 								class='add-gold-button'
-								data-action='submit-add-gold'
+								data-action='imbue-add-gold'
 								data-tooltip='Add Value'
 								data-actor-id='{{actorID}}'
 								data-imbuement-id='{{id}}'
@@ -38,7 +87,7 @@
 							><i class='fa-solid fa-plus'></i></button>
 							<button
 								class='subtract-gold-button'
-								data-action='submit-subtract-gold'
+								data-action='imbue-subtract-gold'
 								data-tooltip='Subtract Value'
 								data-actor-id='{{actorID}}'
 								data-imbuement-id='{{id}}'
@@ -54,24 +103,10 @@
 							>
 								<i class='fas fa-edit'> </i>
 							</a>
-							<a
-								class='delete-imbuement'
-								data-tooltip='Remove Imbuement'
-								data-actor-id='{{actorID}}'
-								data-imbuement-id='{{id}}'
-							>
-								<i class='fa-solid fa-fw fa-trash'></i>
-							</a>
 						</div>
 					</div>
 				</fieldset>
 			{{/each}}
-		</div>
-		<div class='add-imbuement'>
-			<a class='new-imbuement'>
-				<i class='fa-solid fa-plus'></i>
-				New Imbuement
-			</a>
 		</div>
 	</div>
 </section>

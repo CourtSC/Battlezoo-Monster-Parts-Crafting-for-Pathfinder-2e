@@ -1,14 +1,20 @@
-class ImbuementsSheet {
+class MonsterParts {
 	static ID = 'Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e';
 
 	static FLAGS = {
 		IMBUEMENTS: 'imbuements',
+		REFINEMENT: 'refinement',
 	};
 
 	static TEMPLATES = {
 		WeaponImbuedPropertiesSheet: `modules/${this.ID}/templates/weapon-imbued-properties-sheet.hbs`,
 		ImbuedPropertiesSheet: `modules/${this.ID}/templates/imbued-properties-sheet.hbs`,
-		ItemSheetImbuementsTab: `modules/${this.ID}/templates/imbuements-tab.hbs`,
+		MonsterPartsTab: `modules/${this.ID}/templates/monster-parts-tab.hbs`,
+	};
+
+	static DATA = {
+		IMBUEMENTDATA: `modules/${MonsterParts.ID}/data/imbuements.json`,
+		REFINEMENTLEVELDATA: `modules/${MonsterParts.ID}/data/refinementLevels.json`,
 	};
 
 	static log(force, ...args) {
@@ -23,49 +29,261 @@ class ImbuementsSheet {
 
 	static initialize() {
 		this.ImbuementsConfigSheet = new ImbuementsConfigSheet();
-		this.ImbuementsTab = new ImbuementsTab();
+		this.MonsterPartsTab = new MonsterPartsTab();
 	}
 
-	static async renderImbuementsTab(html, itemID, actorID) {
+	static async renderMonsterPartsTab(html, itemID, actorID, itemSheet) {
 		const itemSheetTabs = html.find('[class="tabs"]');
-		const ImbuementsSheetBody = html.find('[class="sheet-body"]');
+		const imbuementsSheetBody = html.find('[class="sheet-body"]');
 		const itemImbuements = ImbuementsSheetData.getImbuementsForItem(
 			actorID,
 			itemID
 		);
 
-		ImbuementsSheet.log(false, 'itemImbuements', ' | ', itemImbuements);
-
 		// Inject Imbuements tab.
 		itemSheetTabs.append(
-			`<a class='list-row' data-tab='imbuements'>Imbuements</a>`
+			`<a class='list-row' data-tab='monster-parts'>Monster Parts</a>`
 		);
 
 		// Render and inject the sheet Body.
 		const renderedTemplate = await renderTemplate(
-			ImbuementsSheet.TEMPLATES.ItemSheetImbuementsTab,
-			{ imbuements: itemImbuements }
+			MonsterParts.TEMPLATES.MonsterPartsTab,
+			{ imbuements: itemImbuements, itemSheet }
 		);
-		ImbuementsSheetBody.append(renderedTemplate);
+
+		MonsterParts.log(false, 'renderMonsterPartsTab', ' | ', {
+			itemImbuements,
+			itemSheetTabs,
+			imbuementsSheetBody,
+			renderedTemplate,
+			itemSheet,
+		});
+
+		imbuementsSheetBody.append(renderedTemplate);
+	}
+}
+
+class RefinementSheetData {
+	// Get item from actor's inventory
+	static getItemFromActorInventory(actorID, itemID) {
+		return game.actors.get(actorID).items.get(itemID);
+	}
+
+	// Add or remove imbuements based on potency.
+	static updateImbuementCount(
+		numImbuements,
+		potency,
+		actorID,
+		itemID,
+		imbuements
+	) {
+		if (numImbuements < potency) {
+			for (let i = numImbuements; i < potency; i++) {
+				ImbuementsSheetData.createImbuement(actorID, itemID, {
+					property: i + 1,
+				});
+			}
+		} else if (numImbuements > potency) {
+			for (let i = numImbuements; i > potency; i--) {
+				for (let imbuement in imbuements) {
+					MonsterParts.log(false, 'deleteImbuement on Refinement update | ', {
+						imbuement: imbuements[imbuement],
+						i,
+					});
+					if (imbuements[imbuement].property === i) {
+						ImbuementsSheetData.deleteImbuement(
+							actorID,
+							imbuements[imbuement].id
+						);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// Update the item's refinement data
+	static async updateRefinement(itemSheet, itemValue, updateData) {
+		const itemType = itemSheet.type;
+		const actorID = itemSheet.parent._id;
+		const levelData = await this.getLevelData(itemValue, itemType, actorID);
+		const itemLevel = levelData.itemLevel;
+		const itemID = itemSheet._id;
+		const imbuements = ImbuementsSheetData.getImbuementsForItem(
+			actorID,
+			itemID
+		);
+
+		const numImbuements =
+			typeof imbuements === 'undefined' ? 0 : Object.keys(imbuements).length;
+
+		MonsterParts.log(false, 'updateRefinement | ', {
+			itemSheet,
+			updateData,
+			levelData,
+			itemLevel,
+			numImbuements,
+		});
+
+		switch (itemType) {
+			case 'weapon':
+				const weaponPotency = levelData.levels[`${itemLevel}`].potency;
+				const striking = levelData.levels[`${itemLevel}`].striking;
+
+				this.updateImbuementCount(
+					numImbuements,
+					weaponPotency,
+					actorID,
+					itemID,
+					imbuements
+				);
+
+				await itemSheet.update({
+					system: {
+						specific: { material: {}, runes: {} },
+						price: { value: { gp: itemValue } },
+						level: { value: itemLevel },
+						runes: { potency: weaponPotency, striking },
+					},
+				});
+				break;
+
+			case 'armor':
+				const armorPotency = levelData.levels[`${itemLevel}`].potency;
+				const resilient = levelData.levels[`${itemLevel}`].resilient;
+
+				this.updateImbuementCount(
+					numImbuements,
+					armorPotency,
+					actorID,
+					itemID,
+					imbuements
+				);
+
+				await itemSheet.update({
+					system: {
+						specific: { material: {}, runes: {} },
+						price: { value: { gp: itemValue } },
+						level: { value: itemLevel },
+						runes: { potency: armorPotency, resilient },
+					},
+				});
+				break;
+
+			case 'equipment':
+				const imbuementCount = levelData.levels[`${itemLevel}`].imbuements;
+
+				this.updateImbuementCount(
+					numImbuements,
+					imbuementCount,
+					actorID,
+					itemID,
+					imbuements
+				);
+
+				await itemSheet.update({
+					system: {
+						price: { value: { gp: itemValue } },
+						level: { value: itemLevel },
+					},
+				});
+				break;
+
+			case 'shield':
+				const sourceID = itemSheet.flags.core.sourceId;
+				const sourceFields = sourceID.split('.');
+				const compendiumName = `${sourceFields[1]}.${sourceFields[2]}`;
+				const compendiumItemID = sourceFields.at(-1);
+				const compendiumPack = game.packs.get(compendiumName);
+				const compendiumItem = await compendiumPack.getDocument(
+					compendiumItemID
+				);
+
+				const hardness = levelData.levels[`${itemLevel}`].hardness
+					? levelData.levels[`${itemLevel}`].hardness
+					: compendiumItem.system.hardness;
+				const hitPoints = levelData.levels[`${itemLevel}`].hp
+					? levelData.levels[`${itemLevel}`].hp
+					: compendiumItem.system.hp.max;
+				const brokenThreshold = levelData.levels[`${itemLevel}`].brokenThreshold
+					? levelData.levels[`${itemLevel}`].brokenThreshold
+					: compendiumItem.system.hp.brokenThreshold;
+
+				this.updateImbuementCount(
+					numImbuements,
+					0,
+					actorID,
+					itemID,
+					imbuements
+				);
+
+				await itemSheet.update({
+					system: {
+						specific: { material: {}, runes: {} },
+						price: { value: { gp: itemValue } },
+						level: { value: itemLevel },
+						hardness,
+						hp: {
+							max: hitPoints,
+							brokenThreshold,
+						},
+					},
+				});
+
+				MonsterParts.log(false, 'shield refinement update | ', {
+					hardness,
+					hitPoints,
+					brokenThreshold,
+					sourceFields,
+					compendiumItem,
+					compendiumName,
+					compendiumPack,
+					compendiumItemID,
+				});
+				break;
+		}
+	}
+
+	static async getLevelData(itemValue, itemType, actorID) {
+		const levelData = await foundry.utils.fetchJsonWithTimeout(
+			MonsterParts.DATA.REFINEMENTLEVELDATA
+		);
+		const itemLevel = Number(
+			Object.keys(levelData[itemType]).find(
+				(key) => levelData[itemType][key].threshold > itemValue
+			) - 1
+		);
+		const actorLevel = game.actors.get(actorID).level;
+
+		MonsterParts.log(false, 'getLevelData | ', {
+			levelData,
+			itemLevelData: levelData[itemType],
+			itemLevel,
+			itemType,
+			itemValue,
+			actorLevel,
+		});
+
+		const lowerLevel =
+			itemLevel || itemLevel === 0
+				? Math.min(actorLevel, itemLevel)
+				: actorLevel;
+
+		return { itemLevel: lowerLevel, levels: levelData[itemType] };
 	}
 }
 
 class ImbuementsSheetData {
 	// Get item from actor's inventory
 	static getItemFromActorInventory(actorID, itemID) {
-		const actorInventory = game.actors.get(actorID).inventory.contents;
-		for (let key in actorInventory) {
-			if (actorInventory[key]._id === itemID) {
-				return actorInventory[key];
-			}
-		}
+		return game.actors.get(actorID).items.get(itemID);
 	}
 
 	// get all of the imbued properties on an item
 	static getImbuementsForItem(actorID, itemID) {
 		return this.getItemFromActorInventory(actorID, itemID)?.getFlag(
-			ImbuementsSheet.ID,
-			ImbuementsSheet.FLAGS.IMBUEMENTS
+			MonsterParts.ID,
+			MonsterParts.FLAGS.IMBUEMENTS
 		);
 	}
 
@@ -89,11 +307,11 @@ class ImbuementsSheetData {
 			[newImbuement.id]: newImbuement,
 		};
 
-		ImbuementsSheet.log(false, 'Imbuement created' | { newImbuements });
+		MonsterParts.log(false, 'Imbuement created' | { newImbuements });
 
 		return this.getItemFromActorInventory(actorID, itemID)?.setFlag(
-			ImbuementsSheet.ID,
-			ImbuementsSheet.FLAGS.IMBUEMENTS,
+			MonsterParts.ID,
+			MonsterParts.FLAGS.IMBUEMENTS,
 			newImbuements
 		);
 	}
@@ -126,7 +344,7 @@ class ImbuementsSheetData {
 			[imbuementID]: updateData,
 		};
 
-		ImbuementsSheet.log(false, 'Updating imbuement', ' | ', {
+		MonsterParts.log(false, 'Updating imbuement', ' | ', {
 			relevantImbuement,
 			update,
 			actorID,
@@ -136,7 +354,7 @@ class ImbuementsSheetData {
 		return this.getItemFromActorInventory(
 			actorID,
 			relevantImbuement.itemID
-		)?.setFlag(ImbuementsSheet.ID, ImbuementsSheet.FLAGS.IMBUEMENTS, update);
+		)?.setFlag(MonsterParts.ID, MonsterParts.FLAGS.IMBUEMENTS, update);
 	}
 
 	static deleteImbuement(actorID, imbuementID) {
@@ -149,42 +367,38 @@ class ImbuementsSheetData {
 		return this.getItemFromActorInventory(
 			actorID,
 			relevantImbuement.itemID
-		)?.setFlag(
-			ImbuementsSheet.ID,
-			ImbuementsSheet.FLAGS.IMBUEMENTS,
-			keyDeletion
-		);
+		)?.setFlag(MonsterParts.ID, MonsterParts.FLAGS.IMBUEMENTS, keyDeletion);
 	}
 }
 
 class ImbuementsConfigSheet extends FormApplication {
 	async getItemType(options) {
 		const imbuedProperties = await foundry.utils.fetchJsonWithTimeout(
-			`modules/${ImbuementsSheet.ID}/data/imbuements.json`
+			MonsterParts.DATA.IMBUEMENTDATA
 		);
 
 		switch (options.itemType) {
 			case 'weapon':
 				return {
-					template: ImbuementsSheet.TEMPLATES.WeaponImbuedPropertiesSheet,
+					template: MonsterParts.TEMPLATES.WeaponImbuedPropertiesSheet,
 					imbuements: imbuedProperties.weapon,
 				};
 
 			case 'equipment':
 				return {
-					template: ImbuementsSheet.TEMPLATES.ImbuedPropertiesSheet,
+					template: MonsterParts.TEMPLATES.ImbuedPropertiesSheet,
 					imbuements: imbuedProperties.skill,
 				};
 
 			case 'armor':
 				return {
-					template: ImbuementsSheet.TEMPLATES.ImbuedPropertiesSheet,
+					template: MonsterParts.TEMPLATES.ImbuedPropertiesSheet,
 					imbuements: imbuedProperties.armor,
 				};
 
 			case 'shield':
 				return {
-					template: ImbuementsSheet.TEMPLATES.ImbuedPropertiesSheet,
+					template: MonsterParts.TEMPLATES.ImbuedPropertiesSheet,
 					imbuements: imbuedProperties.shield,
 				};
 		}
@@ -212,7 +426,7 @@ class ImbuementsConfigSheet extends FormApplication {
 		const itemData = await this.getItemType(options);
 		options.template = itemData.template;
 
-		ImbuementsSheet.log(false, 'getData options', {
+		MonsterParts.log(false, 'getData options', {
 			options,
 			itemData,
 		});
@@ -238,7 +452,7 @@ class ImbuementsConfigSheet extends FormApplication {
 			.parents('[data-imbuement-id]')
 			.data()?.itemId;
 
-		ImbuementsSheet.log(false, 'saving', {
+		MonsterParts.log(false, 'saving', {
 			actorID,
 			imbuementID,
 			itemID,
@@ -353,7 +567,7 @@ class ImbuementsConfigSheet extends FormApplication {
 			}
 		}
 
-		ImbuementsSheet.log(false, 'Button clicked!', {
+		MonsterParts.log(false, 'Button clicked!', {
 			this: this,
 			action,
 			actorID,
@@ -367,25 +581,54 @@ class ImbuementsConfigSheet extends FormApplication {
 }
 
 Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
-	registerPackageDebugFlag(ImbuementsSheet.ID);
+	registerPackageDebugFlag(MonsterParts.ID);
 });
 
 Hooks.once('init', () => {
-	ImbuementsSheet.initialize();
+	MonsterParts.initialize();
+});
+
+Hooks.on('updateActor', (characterSheet) => {
+	const actorID = characterSheet._id;
+
+	for (let idx in characterSheet.items._source) {
+		const item = characterSheet.items._source[idx];
+		const itemType = item.type;
+
+		if (['weapon', 'armor', 'shield', 'equipment'].includes(itemType)) {
+			MonsterParts.log(false, 'updateActor | ', {
+				characterSheet,
+				inventory: characterSheet.items._source,
+				actorID,
+				item,
+				itemType,
+			});
+
+			const itemSheet = game.actors.get(actorID).items.get(item._id);
+
+			RefinementSheetData.updateRefinement(
+				itemSheet,
+				item.system.price.value.gp,
+				{}
+			);
+		}
+	}
 });
 
 Hooks.on('renderItemSheet', async (itemSheet, html) => {
-	ImbuementsSheet.log(false, 'renderItemSheet', ' | ', {
-		itemSheet,
-		html,
-	});
-
 	const itemType = itemSheet.object.type;
 	const itemID = itemSheet.object._id;
 	const actorID = itemSheet.actor._id;
 
+	MonsterParts.log(false, 'renderItemSheet', ' | ', {
+		itemSheet,
+		html,
+		itemType,
+		itemID,
+		actorID,
+	});
+
 	// Bind the current tab.
-	// This is the callback function.
 	function customCallback(event, tabs, active) {
 		this._onChangeTab(event, tabs, active);
 		tabs._activeCustom = active;
@@ -398,43 +641,23 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		itemSheet._tabs[0]._customCallback = newCallback;
 	}
 
-	await ImbuementsSheet.renderImbuementsTab(html, itemID, actorID);
+	await MonsterParts.renderMonsterPartsTab(html, itemID, actorID, itemSheet);
 
-	// Click on New Imbuements button
-	html.on('click', '.new-imbuement', (event) => {
-		ImbuementsSheetData.createImbuement(actorID, itemID, {});
-		event.stopPropagation();
-		return false;
-	});
-
-	// click on Remove Imbuement button
-	html.on('click', '.delete-imbuement', (event) => {
-		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
-		ImbuementsSheet.log(
-			false,
-			'Imbuement deleted',
-			' | ',
-			ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[imbuementID]
-		);
-		ImbuementsSheetData.deleteImbuement(actorID, imbuementID);
-		event.stopPropagation();
-		return false;
-	});
-
+	// Set active tab to Monster Parts
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
 
 	// Click on Configure Imbuement Button
 	html.on('click', '.configure-imbuement', (event) => {
 		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
 
-		ImbuementsSheet.log(false, {
+		MonsterParts.log(false, {
 			actorID,
 			imbuementID,
 			itemID,
 			itemType,
 		});
 
-		ImbuementsSheet.ImbuementsConfigSheet.render(true, {
+		MonsterParts.ImbuementsConfigSheet.render(true, {
 			actorID,
 			imbuementID,
 			itemID,
@@ -446,125 +669,151 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	// Click on + button
 	html.on('click', '.add-gold-button', (event) => {
 		const clickedElement = event.currentTarget;
-		const imbuementID = clickedElement.getAttribute('data-imbuement-id');
-		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
-			imbuementID
-		];
+		const action = clickedElement.dataset.action;
 		const changeValue = Number(clickedElement.previousElementSibling.value);
 
-		switch (true) {
-			case Number.isInteger(changeValue) && changeValue > 0:
-				// Valid input.
-				ImbuementsSheet.log(false, 'add-gold-button clicked | ', {
-					event,
-					imbuementID,
-					actorID,
-					itemID,
-					changeValue,
-					imbuement,
-				});
+		MonsterParts.log(false, 'add-gold-button clicked | ', {
+			event,
+			actorID,
+			itemID,
+			changeValue,
+			action,
+			itemSheet,
+		});
 
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
-					imbuedValue: imbuement.imbuedValue + changeValue,
-				});
-				event.stopPropagation();
-				break;
+		if (Number.isInteger(changeValue) && changeValue > 0) {
+			// Valid input.
+			switch (action) {
+				case 'refine-add-gold':
+					const currValue = itemSheet.object.system.price.value.gp;
+					const newValue = currValue + changeValue;
+					// Update the item.
+					RefinementSheetData.updateRefinement(itemSheet.object, newValue, {});
+					event.stopPropagation();
+					break;
 
-			case !Number.isInteger(changeValue):
-				// Input is not an integer.
-				ImbuementsSheet.log(true, 'Add Gold | ', { changeValue });
-				ui.notifications.error(
-					'Cannot add decimal gold values. Please enter a whole number integer.'
-				);
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
-				event.stopPropagation();
-				break;
-
-			case changeValue < 0:
-				// Input is less than 0
-				ui.notifications.error(
-					'Cannot add negative gold values. Please enter a whole number integer.'
-				);
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
-				event.stopPropagation();
-				break;
-
-			case isNaN(changeValue):
-				// Input is not a number.
-				ui.notifications.error(
-					'Cannot add non-number gold values. Please enter a whole number integer.'
-				);
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
-				event.stopPropagation();
-				break;
+				case 'imbue-add-gold':
+					const imbuementID = clickedElement.getAttribute('data-imbuement-id');
+					const imbuement = ImbuementsSheetData.getImbuementsForItem(
+						actorID,
+						itemID
+					)[imbuementID];
+					ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+						imbuedValue: imbuement.imbuedValue + changeValue,
+					});
+					event.stopPropagation();
+					break;
+			}
+		} else if (!Number.isInteger(changeValue)) {
+			// Input is not an integer.
+			MonsterParts.log(false, 'Add Gold | ', { changeValue });
+			ui.notifications.error(
+				'Cannot add decimal gold values. Please enter a whole number integer.'
+			);
+			ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+			event.stopPropagation();
+			return;
+		} else if (changeValue < 0) {
+			// Input is less than 0
+			ui.notifications.error(
+				'Cannot add negative gold values. Please enter a whole number integer.'
+			);
+			ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+			event.stopPropagation();
+			return;
+		} else if (isNaN(changeValue)) {
+			// Input is not a number.
+			ui.notifications.error(
+				'Cannot add non-number gold values. Please enter a whole number integer.'
+			);
+			ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+			event.stopPropagation();
+			return;
 		}
 	});
 
 	// Click on - button
 	html.on('click', '.subtract-gold-button', (event) => {
 		const clickedElement = event.currentTarget;
-		const imbuementID = clickedElement.getAttribute('data-imbuement-id');
-		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
-			imbuementID
-		];
+		const action = clickedElement.dataset.action;
 		const changeValue = Number(
 			clickedElement.previousElementSibling.previousElementSibling.value
 		);
 
-		ImbuementsSheet.log(false, 'Subtract Gold Button Clicked | ', {
+		MonsterParts.log(false, 'Subtract Gold Button Clicked | ', {
 			event,
-			imbuementID,
 			actorID,
 			itemID,
 			changeValue,
-			imbuement,
+			action,
 		});
 
-		switch (true) {
-			case Number.isInteger(changeValue) && changeValue > 0:
-				// Valid input.
-				ImbuementsSheet.log(false, 'subtract-gold-button clicked | ', {
-					event,
-					imbuementID,
-					actorID,
-					itemID,
-					changeValue,
-					imbuement,
-				});
+		if (Number.isInteger(changeValue) && changeValue > 0) {
+			// Valid input.
+			switch (action) {
+				case 'refine-subtract-gold':
+					const currValue = itemSheet.object.system.price.value.gp;
+					const newValue = currValue - changeValue;
+					// Update the item's value.
+					if (newValue > 0) {
+						RefinementSheetData.updateRefinement(
+							itemSheet.object,
+							newValue,
+							{}
+						);
+						event.stopPropagation();
+						break;
+					} else {
+						RefinementSheetData.updateRefinement(itemSheet.object, 0, {});
+						event.stopPropagation();
+						break;
+					}
 
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
-					imbuedValue: imbuement.imbuedValue - changeValue,
-				});
-				event.stopPropagation();
-				break;
-
-			case !Number.isInteger(changeValue):
-				// Input is not an integer.
-				ImbuementsSheet.log(true, 'Subtract Gold | ', { changeValue });
-				ui.notifications.error(
-					'Cannot add decimal gold values. Please enter a whole number integer.'
-				);
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
-				event.stopPropagation();
-				break;
-
-			case changeValue < 0:
-				// Input is less than 0
-				ui.notifications.error(
-					'Cannot add negative gold values. Please enter a whole number integer.'
-				);
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
-				event.stopPropagation();
-				break;
-
-			case isNaN(changeValue):
-				// Input is not a number.
-				ui.notifications.error(
-					'Cannot add non-number gold values. Please enter a whole number integer.'
-				);
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
-				event.stopPropagation();
-				break;
+				case 'imbue-subtract-gold':
+					const imbuementID = clickedElement.getAttribute('data-imbuement-id');
+					const imbuement = ImbuementsSheetData.getImbuementsForItem(
+						actorID,
+						itemID
+					)[imbuementID];
+					if (imbuement.imbuedValue - changeValue > 0) {
+						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+							imbuedValue: imbuement.imbuedValue - changeValue,
+						});
+						event.stopPropagation();
+						break;
+					} else {
+						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+							imbuedValue: 0,
+						});
+						event.stopPropagation();
+						break;
+					}
+			}
+		} else if (!Number.isInteger(changeValue)) {
+			// Input is not an integer.
+			MonsterParts.log(false, 'Subtract Gold | ', { changeValue });
+			ui.notifications.error(
+				'Cannot subtract decimal gold values. Please enter a whole number integer.'
+			);
+			ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+			event.stopPropagation();
+			return;
+		} else if (changeValue < 0) {
+			// Input is less than 0
+			ui.notifications.error(
+				'Cannot subtract negative gold values. Please enter a whole number integer.'
+			);
+			ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+			event.stopPropagation();
+			return;
+		} else if (isNaN(changeValue)) {
+			// Input is not a number.
+			ui.notifications.error(
+				'Cannot subtract non-number gold values. Please enter a whole number integer.'
+			);
+			ImbuementsSheetData.updateImbuement(actorID, imbuementID, {});
+			event.stopPropagation();
+			return;
 		}
 	});
 });
