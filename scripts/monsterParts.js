@@ -39,6 +39,11 @@ class MonsterParts {
 			actorID,
 			itemID
 		);
+		const imbuementData = await foundry.utils.fetchJsonWithTimeout(
+			MonsterParts.DATA.IMBUEMENTDATA
+		);
+
+		const isWeapon = itemSheet.object.type === 'weapon' ? true : false;
 
 		// Inject Imbuements tab.
 		itemSheetTabs.append(
@@ -48,7 +53,12 @@ class MonsterParts {
 		// Render and inject the sheet Body.
 		const renderedTemplate = await renderTemplate(
 			MonsterParts.TEMPLATES.MonsterPartsTab,
-			{ imbuements: itemImbuements, itemSheet }
+			{
+				imbuements: itemImbuements,
+				itemSheet,
+				imbuementData,
+				isWeapon,
+			}
 		);
 
 		MonsterParts.log(false, 'renderMonsterPartsTab', ' | ', {
@@ -124,6 +134,8 @@ class RefinementSheetData {
 			itemLevel,
 			numImbuements,
 		});
+
+		// TODO: Update item name when refinement data is updated.
 
 		switch (itemType) {
 			case 'weapon':

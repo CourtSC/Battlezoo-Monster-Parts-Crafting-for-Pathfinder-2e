@@ -7,29 +7,7 @@
 		},
 		"properties": {
 			"acid": {
-				"name": "Acid",
-				"parts": "The monster must have the acid trait or an attack or spell that deals acid damage.",
-				"effect": "You imbue the weapon with vitriolic acid.",
-				"path": {
-					"magic": {
-						"school": {
-							"text": "Choose when you first imbue the weapon for the granted spells to be either arcane or primal.",
-							"options": ["Arcane", "Primal"]
-						},
-						"2": "The weapon can cast acid splash as a cantrip, heightened to half the item's level rounded up.",
-						"4": "The weapon can cast acidic burst once per day.",
-						"6": "The weapon's acidic burst heightens to 2nd level and it can cast either acid arrow or acidic burst once per day, but not both.",
-						"8": "The weapon's acidic burst heightens to 3rd level, and it can cast acid arrow and acidic burst each once per day.",
-						"10": "Strikes with the weapon deal 1 additional acid damage.",
-						"12": "The weapon's acid arrow heightens to 4th level, and the weapon can cast acid storm once per day.",
-						"14": "The additional acid damage increases to 1d4.",
-						"16": "The weapon's acid arrow heightens to 6th level and acid storm heightens to 7th level.",
-						"18": "The additional acid damage increases to 1d6.",
-						"20": "The weapon can cast storm of vengeance once per day but you can only choose the acid rain effect. You can choose the acid rain effect twice in a row."
-					},
-					"might": {},
-					"technique": {}
-				}
+				"name": "Acid"
 			},
 			"bane": {
 				"name": "Bane"
@@ -60,7 +38,7 @@
 			}
 		}
 	},
-	"skill": {
+	"equipment": {
 		"charisma": {
 			"name": "Charisma"
 		},
