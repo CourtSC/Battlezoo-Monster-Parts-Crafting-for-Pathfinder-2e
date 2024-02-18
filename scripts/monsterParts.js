@@ -632,6 +632,8 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	const itemID = itemSheet.object._id;
 	const actorID = itemSheet.actor._id;
 
+	await MonsterParts.renderMonsterPartsTab(html, itemID, actorID, itemSheet);
+
 	MonsterParts.log(false, 'renderItemSheet', ' | ', {
 		itemSheet,
 		html,
@@ -648,12 +650,10 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	if (itemSheet._tabs[0].callback !== itemSheet._tabs[0]._customCallback) {
 		// Bind `customCallback` with `this` being the app instance.
-		const newCallback = customCallback.bind(itemSheet);
+		const newCallback = await customCallback.bind(itemSheet);
 		itemSheet._tabs[0].callback = newCallback;
 		itemSheet._tabs[0]._customCallback = newCallback;
 	}
-
-	await MonsterParts.renderMonsterPartsTab(html, itemID, actorID, itemSheet);
 
 	// Set active tab to Monster Parts
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);

@@ -100,8 +100,8 @@
 				<div class='monster-parts-data'>
 					{{#if ../isWeapon}}
 						<div class='data-group'>
-							<label for='monster-parts-property'>Property:</label>
-							<select name='monster-parts-property' id='monster-parts-property'>
+							<label for='monster-parts-property-{{../itemSheet.object._id}}'>Property:</label>
+							<select name='monster-parts-property-{{../itemSheet.object._id}}' id='monster-parts-property-{{../itemSheet.object._id}}'>
 								<option value=''></option>
 								{{#each ../imbuementData.weapon.properties}}
 									<option value='{{@key}}'>{{name}}</option>
@@ -109,8 +109,8 @@
 							</select>
 						</div>
 						<div class="data-group">
-							<label for="monster-parts-path">Path:</label>
-							<select name="monster-parts-path" id="monster-parts-path">
+							<label for="monster-parts-path-{{../itemSheet.object._id}}">Path:</label>
+							<select name="monster-parts-path-{{../itemSheet.object._id}}" id="monster-parts-path-{{../itemSheet.object._id}}">
 								<option value=""></option>
 								{{#each ../imbuementData.weapon.paths}}
 									<option value="{{@key}}">{{this}}</option>
@@ -120,10 +120,9 @@
 					{{/if}}
 					{{#unless ../isWeapon}}
 						<div class='data-group'>
-							<label for='monster-parts-property'>Property:</label>
-							<select name='monster-parts-property' id='monster-parts-property'>
+							<label for='monster-parts-property-{{../itemSheet.object._id}}'>Property:</label>
+							<select name='monster-parts-property-{{../itemSheet.object._id}}' id='monster-parts-property-{{../itemSheet.object._id}}'>
 								<option value=''></option>
-								{{log (lookup ../imbuementData ../itemSheet.object.type)}}
 								{{#each (lookup ../imbuementData ../itemSheet.object.type)}}
 									<option value="{{@key}}">{{name}}</option>
 								{{/each}}
