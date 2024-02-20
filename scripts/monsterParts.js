@@ -47,7 +47,7 @@ class MonsterParts {
 
 		// Inject Imbuements tab.
 		itemSheetTabs.append(
-			`<a class='list-row' data-tab='monster-parts'>Monster Parts</a>`
+			`<a class="list-row" data-tab="monster-parts">Monster Parts</a>`
 		);
 
 		// Render and inject the sheet Body.
@@ -310,8 +310,6 @@ class ImbuementsSheetData {
 			itemID,
 			actorID,
 			imbuedValue: 0,
-			formDataProperty: '',
-			formDataPath: '',
 		};
 
 		// construct the update to insert the new imbuement
@@ -383,215 +381,6 @@ class ImbuementsSheetData {
 	}
 }
 
-class ImbuementsConfigSheet extends FormApplication {
-	async getItemType(options) {
-		const imbuedProperties = await foundry.utils.fetchJsonWithTimeout(
-			MonsterParts.DATA.IMBUEMENTDATA
-		);
-
-		switch (options.itemType) {
-			case 'weapon':
-				return {
-					template: MonsterParts.TEMPLATES.WeaponImbuedPropertiesSheet,
-					imbuements: imbuedProperties.weapon,
-				};
-
-			case 'equipment':
-				return {
-					template: MonsterParts.TEMPLATES.ImbuedPropertiesSheet,
-					imbuements: imbuedProperties.skill,
-				};
-
-			case 'armor':
-				return {
-					template: MonsterParts.TEMPLATES.ImbuedPropertiesSheet,
-					imbuements: imbuedProperties.armor,
-				};
-
-			case 'shield':
-				return {
-					template: MonsterParts.TEMPLATES.ImbuedPropertiesSheet,
-					imbuements: imbuedProperties.shield,
-				};
-		}
-	}
-	static get defaultOptions() {
-		const defaults = super.defaultOptions;
-
-		const overrides = {
-			id: `${this.itemType}-imbuement-config-sheet`,
-			title: 'Configure Imbuement',
-			closeOnSubmit: false,
-			submitOnChange: true,
-			actorID: this.actorID,
-			imbuementID: this.imbuementID,
-			itemID: this.itemID,
-			itemType: this.itemType,
-		};
-
-		const mergedOptions = foundry.utils.mergeObject(defaults, overrides);
-
-		return mergedOptions;
-	}
-
-	async getData(options) {
-		const itemData = await this.getItemType(options);
-		options.template = itemData.template;
-
-		MonsterParts.log(false, 'getData options', {
-			options,
-			itemData,
-		});
-
-		return {
-			imbuements: itemData.imbuements,
-			actorID: options.actorID,
-			imbuementID: options.imbuementID,
-			itemID: options.itemID,
-			itemType: options.itemType,
-		};
-	}
-
-	async _updateObject(event, formData) {
-		const expandedData = foundry.utils.expandObject(formData);
-		const actorID = $(event.currentTarget)
-			.parents('[data-actor-id]')
-			?.data()?.actorId;
-		const imbuementID = $(event.currentTarget)
-			.parents('[data-imbuement-id]')
-			?.data()?.imbuementId;
-		const itemID = $(event.currentTarget)
-			.parents('[data-imbuement-id]')
-			.data()?.itemId;
-
-		MonsterParts.log(false, 'saving', {
-			actorID,
-			imbuementID,
-			itemID,
-			formData,
-			expandedData,
-			event,
-		});
-		const updateData = {
-			// name: `${formData['imbued-property']} ${formData['imbuement-path']}`,
-			formDataProperty: formData['imbued-property'],
-			formDataPath: formData['imbuement-path'],
-		};
-
-		ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
-	}
-
-	activateListeners(html) {
-		super.activateListeners(html);
-		html.on('click', '[data-action]', this._handleButtonClick.bind(this));
-	}
-
-	async _handleButtonClick(event) {
-		const clickedElement = $(event.currentTarget);
-		const action = clickedElement.data().action;
-		const itemType = clickedElement.data().itemType;
-		const actorID = clickedElement
-			.parents('[data-imbuement-id]')
-			.data()?.actorId;
-		const imbuementID = clickedElement
-			.parents('[data-imbuement-id]')
-			.data()?.imbuementId;
-		const itemID = clickedElement.parents('[data-imbuement-id]').data()?.itemId;
-		const imbuement = ImbuementsSheetData.getImbuementsForItem(actorID, itemID)[
-			imbuementID
-		];
-
-		if (itemType === 'weapon') {
-			switch (action) {
-				case 'save': {
-					if (
-						imbuement.formDataProperty === '' ||
-						imbuement.formDataPath === ''
-					) {
-						ui.notifications.error('Cannot save blank fields.');
-						break;
-					} else {
-						const updateData = {
-							name: `${imbuement.formDataProperty} ${imbuement.formDataPath}`,
-							imbuedProperty: imbuement.formDataProperty,
-							imbuedPath: imbuement.formDataPath,
-						};
-
-						ImbuementsSheetData.updateImbuement(
-							actorID,
-							imbuementID,
-							updateData
-						);
-						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
-							formDataProperty: '',
-							formDataPath: '',
-						});
-						this.close();
-						break;
-					}
-				}
-
-				case 'cancel': {
-					const updateData = {
-						formDataProperty: '',
-						formDataPath: '',
-					};
-					ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
-					this.close();
-					break;
-				}
-			}
-		} else {
-			switch (action) {
-				case 'save': {
-					if (imbuement.formDataProperty === '') {
-						ui.notifications.error('Cannot save blank fields.');
-						break;
-					} else {
-						const updateData = {
-							name: imbuement.formDataProperty,
-							imbuedProperty: imbuement.formDataProperty,
-						};
-
-						ImbuementsSheetData.updateImbuement(
-							actorID,
-							imbuementID,
-							updateData
-						);
-						ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
-							formDataProperty: '',
-							formDataPath: '',
-						});
-						this.close();
-						break;
-					}
-				}
-
-				case 'cancel': {
-					const updateData = {
-						formDataProperty: '',
-						formDataPath: '',
-					};
-					ImbuementsSheetData.updateImbuement(actorID, imbuementID, updateData);
-					this.close();
-					break;
-				}
-			}
-		}
-
-		MonsterParts.log(false, 'Button clicked!', {
-			this: this,
-			action,
-			actorID,
-			imbuementID,
-			itemID,
-			event,
-			itemType,
-			clickedElement: clickedElement.data(),
-		});
-	}
-}
-
 Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
 	registerPackageDebugFlag(MonsterParts.ID);
 });
@@ -658,24 +447,52 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	// Set active tab to Monster Parts
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
 
-	// Click on Configure Imbuement Button
-	html.on('click', '.configure-imbuement', (event) => {
-		const imbuementID = event.currentTarget.getAttribute('data-imbuement-id');
-
-		MonsterParts.log(false, {
+	// Change the Imbuement Property
+	html.on('change', '.monster-parts-property', async (event) => {
+		const currentTarget = event.currentTarget;
+		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
+		const imbuementID = currentTarget.getAttribute('data-imbuement-id');
+		const relevantImbuement = await ImbuementsSheetData.getImbuementsForItem(
 			actorID,
-			imbuementID,
-			itemID,
-			itemType,
+			itemID
+		)[imbuementID];
+
+		ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+			name: `${selectedOption} ${relevantImbuement.imbuedPath}`,
+			imbuedProperty: selectedOption,
 		});
 
-		MonsterParts.ImbuementsConfigSheet.render(true, {
-			actorID,
+		MonsterParts.log(false, '.monster-parts-property changed | ', {
+			event,
+			currentTarget,
+			selectedOption,
 			imbuementID,
-			itemID,
-			itemType,
+			relevantImbuement,
 		});
-		event.stopPropagation();
+	});
+
+	// Change the Imbuement Path
+	html.on('change', '.monster-parts-path', async (event) => {
+		const currentTarget = event.currentTarget;
+		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
+		const imbuementID = currentTarget.getAttribute('data-imbuement-id');
+		const relevantImbuement = await ImbuementsSheetData.getImbuementsForItem(
+			actorID,
+			itemID
+		)[imbuementID];
+
+		ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+			name: `${relevantImbuement.imbuedProperty} ${selectedOption}`,
+			imbuedPath: selectedOption,
+		});
+
+		MonsterParts.log(false, '.monster-parts-property changed | ', {
+			event,
+			currentTarget,
+			selectedOption,
+			imbuementID,
+			relevantImbuement,
+		});
 	});
 
 	// Click on + button

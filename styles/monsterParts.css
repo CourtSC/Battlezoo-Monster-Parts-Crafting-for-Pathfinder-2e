@@ -9,6 +9,14 @@
     text-transform: capitalize;
 }
 
+.monster-parts-property {
+    text-transform: capitalize;
+}
+
+.monster-parts-path {
+    text-transform: capitalize;
+}
+
 .gold-value-input {
     max-width: 70px;
 }
