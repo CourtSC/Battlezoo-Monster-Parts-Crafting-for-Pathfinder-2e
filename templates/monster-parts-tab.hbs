@@ -10,11 +10,12 @@
                 </a>
             </div>
             <div class="value-controls">
-                <label class="gold-value-label" for="gold-value-input">Add Parts:</label>
+                <label class="gold-value-label"
+                       for="refinement-value-input-{{itemSheet.object._id}}">Add Parts:</label>
                 <input class="gold-value-input"
                        type="number"
-                       name="gold-value-input"
-                       id="gold-value-input"
+                       name="refinement-value-input-{{itemSheet.object._id}}"
+                       id="refinement-value-input-{{itemSheet.object._id}}"
                        data-tooltip="Enter value to invest"
                        value=""
                        placeholder="0 gp"
@@ -57,11 +58,12 @@
                     </a>
                 </div>
                 <div class="value-controls">
-                    <label class="gold-value-label" for="gold-value-input-{{this.property}}">Add Parts:</label>
+                    <label class="gold-value-label"
+                           for="gold-value-input-{{this.id}}-{{../itemSheet.object._id}}">Add Parts:</label>
                     <input class="gold-value-input"
                            type="number"
-                           name="gold-value-input-{{this.property}}"
-                           id="gold-value-input-{{this.property}}"
+                           name="gold-value-input-{{this.id}}-{{../itemSheet.object._id}}"
+                           id="gold-value-input-{{this.id}}-{{../itemSheet.object._id}}"
                            data-tooltip="Enter value to invest"
                            value=""
                            placeholder="0 gp"
@@ -92,10 +94,10 @@
                 <div class="monster-parts-data">
                     {{#if ../isWeapon }}
                         <div class="data-group">
-                            <label for="monster-parts-property-{{../itemSheet.object._id}}">Property:</label>
+                            <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
                             <select class="monster-parts-property"
-                                    name="monster-parts-property-{{../itemSheet.object._id}}"
-                                    id="monster-parts-property-{{../itemSheet.object._id}}"
+                                    name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                                    id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
                                     data-actor-id="{{actorID}}"
                                     data-imbuement-id="{{id}}"
                                     data-item-id="{{itemID}}">
@@ -106,10 +108,10 @@
                             </select>
                         </div>
                         <div class="data-group">
-                            <label for="monster-parts-path-{{../itemSheet.object._id}}">Path:</label>
+                            <label for="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}">Path:</label>
                             <select class="monster-parts-path"
-                                    name="monster-parts-path-{{../itemSheet.object._id}}"
-                                    id="monster-parts-path-{{../itemSheet.object._id}}"
+                                    name="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}"
+                                    id="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}"
                                     data-actor-id="{{actorID}}"
                                     data-imbuement-id="{{id}}"
                                     data-item-id="{{itemID}}">
@@ -122,10 +124,10 @@
                     {{/if}}
                     {{#unless ../isWeapon}}
                     <div class="data-group">
-                        <label for="monster-parts-property-{{../itemSheet.object._id}}">Property:</label>
+                        <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
                         <select class="monster-parts-property"
-                                name="monster-parts-property-{{../itemSheet.object._id}}"
-                                id="monster-parts-property-{{../itemSheet.object._id}}"
+                                name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                                id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
                                 data-actor-id="{{actorID}}"
                                 data-imbuement-id="{{id}}"
                                 data-item-id="{{itemID}}">
