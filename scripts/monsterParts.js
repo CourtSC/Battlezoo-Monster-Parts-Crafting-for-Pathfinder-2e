@@ -34,7 +34,6 @@ class MonsterParts {
 	}
 
 	static initialize() {
-		this.ImbuementsConfigSheet = new ImbuementsConfigSheet();
 		this.MonsterPartsTab = new MonsterPartsTab();
 	}
 
@@ -52,7 +51,7 @@ class MonsterParts {
 	static async renderMonsterPartsTab(html, itemID, actorID, itemSheet) {
 		const flags = itemSheet.object.flags[this.ID];
 		const itemSheetTabs = html.find('[class="tabs"]');
-		const imbuementsSheetBody = html.find('[class="sheet-body"]');
+		const monsterPartsBody = html.find('[class="sheet-body"]');
 		const itemImbuements = ImbuementsSheetData.getImbuementsForItem(
 			actorID,
 			itemID
@@ -97,14 +96,14 @@ class MonsterParts {
 		MonsterParts.log(false, 'renderMonsterPartsTab', ' | ', {
 			itemImbuements,
 			itemSheetTabs,
-			imbuementsSheetBody,
+			monsterPartsBody,
 			renderedTemplate,
 			itemSheet,
 			flags,
 			skillOptions,
 		});
 
-		imbuementsSheetBody.append(renderedTemplate);
+		return monsterPartsBody.append(renderedTemplate);
 	}
 }
 
@@ -148,10 +147,14 @@ class RefinementSheetData {
 	}
 
 	// Update the item's refinement data
-	static async updateRefinement(itemSheet, itemValue, updateData) {
+	static async updateRefinement(itemSheet, updateData) {
 		const itemType = itemSheet.type;
 		const actorID = itemSheet.parent._id;
-		const levelData = await this.getLevelData(itemValue, itemType, actorID);
+		const levelData = await this.getLevelData(
+			updateData.itemValue,
+			itemType,
+			actorID
+		);
 		const itemLevel = levelData.itemLevel;
 		const itemID = itemSheet._id;
 		const imbuements = ImbuementsSheetData.getImbuementsForItem(
@@ -186,7 +189,7 @@ class RefinementSheetData {
 				await itemSheet.update({
 					system: {
 						specific: { material: {}, runes: {} },
-						price: { value: { gp: itemValue } },
+						price: { value: { gp: updateData.itemValue } },
 						level: { value: itemLevel },
 						runes: { potency: weaponPotency, striking },
 					},
@@ -208,7 +211,7 @@ class RefinementSheetData {
 				await itemSheet.update({
 					system: {
 						specific: { material: {}, runes: {} },
-						price: { value: { gp: itemValue } },
+						price: { value: { gp: updateData.itemValue } },
 						level: { value: itemLevel },
 						runes: { potency: armorPotency, resilient },
 					},
@@ -216,7 +219,7 @@ class RefinementSheetData {
 				break;
 
 			case 'equipment':
-				const imbuementCount = levelData.levels[`${itemLevel}`].imbuements;
+				const imbuementCount = levelData.levels[itemLevel].imbuements;
 
 				this.updateImbuementCount(
 					numImbuements,
@@ -228,7 +231,7 @@ class RefinementSheetData {
 
 				await itemSheet.update({
 					system: {
-						price: { value: { gp: itemValue } },
+						price: { value: { gp: updateData.itemValue } },
 						level: { value: itemLevel },
 						rules: updateData.rules,
 						traits: {
@@ -276,7 +279,7 @@ class RefinementSheetData {
 				await itemSheet.update({
 					system: {
 						specific: { material: {}, runes: {} },
-						price: { value: { gp: itemValue } },
+						price: { value: { gp: updateData.itemValue } },
 						level: { value: itemLevel },
 						hardness,
 						hp: {
@@ -659,9 +662,9 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			switch (action) {
 				case 'refine-add-gold':
 					const currValue = itemSheet.object.system.price.value.gp;
-					const newValue = currValue + changeValue;
+					const itemValue = currValue + changeValue;
 					// Update the item.
-					RefinementSheetData.updateRefinement(itemSheet.object, newValue, {});
+					RefinementSheetData.updateRefinement(itemSheet.object, { itemValue });
 					event.stopPropagation();
 					break;
 
@@ -726,14 +729,12 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			switch (action) {
 				case 'refine-subtract-gold':
 					const currValue = itemSheet.object.system.price.value.gp;
-					const newValue = currValue - changeValue;
+					const itemValue = currValue - changeValue;
 					// Update the item's value.
-					if (newValue > 0) {
-						RefinementSheetData.updateRefinement(
-							itemSheet.object,
-							newValue,
-							{}
-						);
+					if (itemValue > 0) {
+						RefinementSheetData.updateRefinement(itemSheet.object, {
+							itemValue,
+						});
 						event.stopPropagation();
 						break;
 					} else {
