@@ -42,7 +42,26 @@
                 </button>
             </div>
         </div>
-        <div class="monster-parts-column"></div>
+        {{#if isEquipment }}
+            <div class="monster-parts-column-right">
+                <div class="monster-parts-data">
+                    <div class="data-group">
+                        <label for="monster-parts-property-{{itemSheet.object._id}}">Path:</label>
+                        <select class="monster-parts-refinement-property"
+                                name="monster-parts-property-{{itemSheet.object._id}}"
+                                id="monster-parts-property-{{itemSheet.object._id}}"
+                                data-actor-id="{{actorID}}"
+                                data-imbuement-id="{{id}}"
+                                data-item-id="{{itemID}}">
+                            <option value="" selected="selected" disabled hidden>{{flags.refinement.refinementPath}}</option>
+                            {{#each imbuementData.equipment }}
+                                <option value="{{@key}}">{{@key}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                </div>
+            {{/if}}
+        </div>
     </fieldset>
     {{#each imbuements }}
         <fieldset class="imbuement">
@@ -122,7 +141,24 @@
                             </select>
                         </div>
                     {{/if}}
+                    {{#if ../isEquipment }}
+                        <div class="data-group">
+                            <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
+                            <select class="monster-parts-property"
+                                    name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                                    id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                                    data-actor-id="{{actorID}}"
+                                    data-imbuement-id="{{id}}"
+                                    data-item-id="{{itemID}}">
+                                <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
+                                {{#each (lookup ../imbuementData.equipment ../flags.refinement.refinementPath) }}
+                                    <option value="{{@key}}">{{name}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                    {{/if}}
                     {{#unless ../isWeapon}}
+                    {{#unless ../isEquipment}}
                     <div class="data-group">
                         <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
                         <select class="monster-parts-property"
@@ -138,8 +174,9 @@
                         </select>
                     </div>
                 {{/unless}}
-            </div>
+            {{/unless}}
         </div>
-    </fieldset>
+    </div>
+</fieldset>
 {{/each}}
 </section>

@@ -39,29 +39,33 @@
 		}
 	},
 	"equipment": {
-		"charisma": {
-			"name": "Charisma"
+		"skill": {
+			"charisma": {
+				"name": "Charisma"
+			},
+			"constitution": {
+				"name": "Constitution"
+			},
+			"dexterity": {
+				"name": "Dexterity"
+			},
+			"intelligence": {
+				"name": "Intelligence"
+			},
+			"spell": {
+				"name": "Spell"
+			},
+			"strength": {
+				"name": "Strength"
+			},
+			"wisdom": {
+				"name": "Wisdom"
+			}
 		},
-		"constitution": {
-			"name": "Constitution"
-		},
-		"dexterity": {
-			"name": "Dexterity"
-		},
-		"intelligence": {
-			"name": "Intelligence"
-		},
-		"sensory": {
-			"name": "Sensory"
-		},
-		"spell": {
-			"name": "Spell"
-		},
-		"strength": {
-			"name": "Strength"
-		},
-		"wisdom": {
-			"name": "Wisdom"
+		"perception": {
+			"sensory": {
+				"name": "Sensory"
+			}
 		}
 	},
 	"armor": {

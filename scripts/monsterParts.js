@@ -33,6 +33,7 @@ class MonsterParts {
 	}
 
 	static async renderMonsterPartsTab(html, itemID, actorID, itemSheet) {
+		const flags = itemSheet.object.flags[this.ID];
 		const itemSheetTabs = html.find('[class="tabs"]');
 		const imbuementsSheetBody = html.find('[class="sheet-body"]');
 		const itemImbuements = ImbuementsSheetData.getImbuementsForItem(
@@ -43,7 +44,9 @@ class MonsterParts {
 			MonsterParts.DATA.IMBUEMENTDATA
 		);
 
+		// Set the itemType booleans
 		const isWeapon = itemSheet.object.type === 'weapon' ? true : false;
+		const isEquipment = itemSheet.object.type === 'equipment' ? true : false;
 
 		// Inject Imbuements tab.
 		itemSheetTabs.append(
@@ -58,6 +61,8 @@ class MonsterParts {
 				itemSheet,
 				imbuementData,
 				isWeapon,
+				isEquipment,
+				flags,
 			}
 		);
 
@@ -67,6 +72,7 @@ class MonsterParts {
 			imbuementsSheetBody,
 			renderedTemplate,
 			itemSheet,
+			flags,
 		});
 
 		imbuementsSheetBody.append(renderedTemplate);
@@ -199,6 +205,12 @@ class RefinementSheetData {
 						level: { value: itemLevel },
 					},
 				});
+
+				itemSheet.setFlag(
+					MonsterParts.ID,
+					MonsterParts.FLAGS.REFINEMENT,
+					updateData
+				);
 				break;
 
 			case 'shield':
@@ -446,6 +458,45 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Set active tab to Monster Parts
 	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
+
+	// Change the Refinement Path for an Equipment item
+	html.on('change', '.monster-parts-refinement-property', async (event) => {
+		const currentTarget = event.currentTarget;
+		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
+		const currentPath = await itemSheet.object.getFlag(
+			MonsterParts.ID,
+			MonsterParts.FLAGS.REFINEMENT
+		).refinementPath;
+
+		await RefinementSheetData.updateRefinement(
+			itemSheet.object,
+			itemSheet.object.system.price.value.gp,
+			{ refinementPath: selectedOption }
+		);
+
+		const pathChanged = currentPath !== selectedOption;
+
+		// Remove the imbuedProperty value if the refinement path has changed
+		if (pathChanged) {
+			const imbuements = ImbuementsSheetData.getImbuementsForItem(
+				actorID,
+				itemID
+			);
+
+			for (let imbuementID in imbuements) {
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+					imbuedProperty: '',
+					name: 'New Imbuement',
+				});
+			}
+		}
+
+		MonsterParts.log(false, '.monster-parts-refinement-property changed | ', {
+			itemSheet,
+			selectedOption,
+			currentPath,
+		});
+	});
 
 	// Change the Imbuement Property
 	html.on('change', '.monster-parts-property', async (event) => {
