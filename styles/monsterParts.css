@@ -13,6 +13,10 @@
     text-transform: capitalize;
 }
 
+.monster-parts-skill {
+    text-transform: capitalize;
+}
+
 .monster-parts-refinement-property {
     text-transform: capitalize;
 }
@@ -89,10 +93,12 @@ fieldset.imbuement {
 
 .data-group-label {
     font-weight: 500;
+    text-transform: capitalize;
 }
 
 .data-group-value {
     float: right;
+    width: 100px;
 }
 
 .data-group > select {

@@ -15,6 +15,12 @@ class MonsterParts {
 	static DATA = {
 		IMBUEMENTDATA: `modules/${MonsterParts.ID}/data/imbuements.json`,
 		REFINEMENTLEVELDATA: `modules/${MonsterParts.ID}/data/refinementLevels.json`,
+		SKILLDATA: `modules/${MonsterParts.ID}/data/skills.json`,
+		RULES: `modules/${MonsterParts.ID}/data/rules`,
+	};
+
+	static RULES = {
+		FLATMODIFIER: `${MonsterParts.DATA.RULES}/flatModifier.json`,
 	};
 
 	static log(force, ...args) {
@@ -32,6 +38,17 @@ class MonsterParts {
 		this.MonsterPartsTab = new MonsterPartsTab();
 	}
 
+	static async getMonsterPartsFlag(itemSheet, scope, key) {
+		// Check for flag and initialize it if it doesn't exist
+		try {
+			return await itemSheet.getFlag(MonsterParts.ID, scope)[key];
+		} catch {
+			await itemSheet.setFlag(MonsterParts.ID, scope, { [key]: '' });
+			MonsterParts.log(false, `Initialized ${key} in ${scope}`);
+			return await itemSheet.getFlag(MonsterParts.ID, scope)[key];
+		}
+	}
+
 	static async renderMonsterPartsTab(html, itemID, actorID, itemSheet) {
 		const flags = itemSheet.object.flags[this.ID];
 		const itemSheetTabs = html.find('[class="tabs"]');
@@ -43,10 +60,19 @@ class MonsterParts {
 		const imbuementData = await foundry.utils.fetchJsonWithTimeout(
 			MonsterParts.DATA.IMBUEMENTDATA
 		);
+		const refinementType = await this.getMonsterPartsFlag(
+			itemSheet.object,
+			MonsterParts.FLAGS.REFINEMENT,
+			'refinementType'
+		);
+		const skillOptions = await foundry.utils.fetchJsonWithTimeout(
+			MonsterParts.DATA.SKILLDATA
+		);
 
 		// Set the itemType booleans
 		const isWeapon = itemSheet.object.type === 'weapon' ? true : false;
 		const isEquipment = itemSheet.object.type === 'equipment' ? true : false;
+		const isSkillItem = refinementType === 'skill' ? true : false;
 
 		// Inject Imbuements tab.
 		itemSheetTabs.append(
@@ -62,7 +88,9 @@ class MonsterParts {
 				imbuementData,
 				isWeapon,
 				isEquipment,
+				isSkillItem,
 				flags,
+				skillOptions,
 			}
 		);
 
@@ -73,6 +101,7 @@ class MonsterParts {
 			renderedTemplate,
 			itemSheet,
 			flags,
+			skillOptions,
 		});
 
 		imbuementsSheetBody.append(renderedTemplate);
@@ -141,8 +170,6 @@ class RefinementSheetData {
 			numImbuements,
 		});
 
-		// TODO: Update item name when refinement data is updated.
-
 		switch (itemType) {
 			case 'weapon':
 				const weaponPotency = levelData.levels[`${itemLevel}`].potency;
@@ -203,6 +230,11 @@ class RefinementSheetData {
 					system: {
 						price: { value: { gp: itemValue } },
 						level: { value: itemLevel },
+						rules: updateData.rules,
+						traits: {
+							value: [...itemSheet.system.traits.value, 'invested', 'magical'],
+						},
+						usage: { type: 'worn', value: 'worn' },
 					},
 				});
 
@@ -461,20 +493,38 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Change the Refinement Path for an Equipment item
 	html.on('change', '.monster-parts-refinement-property', async (event) => {
-		const currentTarget = event.currentTarget;
-		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
-		const currentPath = await itemSheet.object.getFlag(
-			MonsterParts.ID,
-			MonsterParts.FLAGS.REFINEMENT
-		).refinementPath;
-
-		await RefinementSheetData.updateRefinement(
+		const selectedOption =
+			event.currentTarget.selectedOptions[0].attributes[0].value;
+		const currentPath = await MonsterParts.getMonsterPartsFlag(
 			itemSheet.object,
-			itemSheet.object.system.price.value.gp,
-			{ refinementPath: selectedOption }
+			MonsterParts.FLAGS.REFINEMENT,
+			'refinementType'
 		);
-
 		const pathChanged = currentPath !== selectedOption;
+
+		if (selectedOption === 'skill') {
+			await RefinementSheetData.updateRefinement(
+				itemSheet.object,
+				itemSheet.object.system.price.value.gp,
+				{ refinementType: selectedOption, skill: '' }
+			);
+			event.stopPropagation();
+		} else {
+			const flatModifier = await foundry.utils.fetchJsonWithTimeout(
+				MonsterParts.RULES.FLATMODIFIER
+			);
+			flatModifier.selector = [selectedOption];
+			const rules = [...itemSheet.object.system.rules, flatModifier];
+
+			await RefinementSheetData.updateRefinement(
+				itemSheet.object,
+				itemSheet.object.system.price.value.gp,
+				{ refinementType: selectedOption, rules }
+			);
+
+			MonsterParts.log(false, 'Perception Item updated | ', { rules });
+			event.stopPropagation();
+		}
 
 		// Remove the imbuedProperty value if the refinement path has changed
 		if (pathChanged) {
@@ -495,7 +545,43 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			itemSheet,
 			selectedOption,
 			currentPath,
+			pathChanged,
 		});
+		event.stopPropagation();
+	});
+
+	// Change the skill on a skill item.
+	html.on('change', '.monster-parts-skill', async (event) => {
+		const skill = event.currentTarget.selectedOptions[0].attributes[0].value;
+		const currentskill = await MonsterParts.getMonsterPartsFlag(
+			itemSheet.object,
+			MonsterParts.FLAGS.REFINEMENT,
+			'skill'
+		);
+
+		// Check if the selected skill has changed.
+		const skillChanged = skill !== currentskill;
+
+		if (skillChanged) {
+			const flatModifier = await foundry.utils.fetchJsonWithTimeout(
+				MonsterParts.RULES.FLATMODIFIER
+			);
+			flatModifier.selector = [skill];
+			const rules = [...itemSheet.object.system.rules, flatModifier];
+
+			MonsterParts.log(false, 'Skill changed | ', {
+				rules,
+				skill,
+				flatModifier,
+			});
+
+			await RefinementSheetData.updateRefinement(
+				itemSheet.object,
+				itemSheet.object.system.price.value.gp,
+				{ skill, rules }
+			);
+			event.stopPropagation();
+		}
 	});
 
 	// Change the Imbuement Property
@@ -544,6 +630,13 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			imbuementID,
 			relevantImbuement,
 		});
+	});
+
+	html.on('change', '.gold-value-input', (event) => {
+		MonsterParts.log(false, '.gold-value-input Changed | ', {
+			event,
+		});
+		event.stopPropagation();
 	});
 
 	// Click on + button

@@ -46,19 +46,35 @@
             <div class="monster-parts-column-right">
                 <div class="monster-parts-data">
                     <div class="data-group">
-                        <label for="monster-parts-property-{{itemSheet.object._id}}">Path:</label>
+                        <label for="monster-parts-property-{{itemSheet.object._id}}">Item Type:</label>
                         <select class="monster-parts-refinement-property"
                                 name="monster-parts-property-{{itemSheet.object._id}}"
                                 id="monster-parts-property-{{itemSheet.object._id}}"
                                 data-actor-id="{{actorID}}"
                                 data-imbuement-id="{{id}}"
                                 data-item-id="{{itemID}}">
-                            <option value="" selected="selected" disabled hidden>{{flags.refinement.refinementPath}}</option>
+                            <option value="" selected="selected" disabled hidden>{{flags.refinement.refinementType}}</option>
                             {{#each imbuementData.equipment }}
                                 <option value="{{@key}}">{{@key}}</option>
                             {{/each}}
                         </select>
                     </div>
+                    {{#if isSkillItem }}
+                        <div class="data-group">
+                            <label for="monster-parts-skill-{{itemSheet.object._id}}">Skill:</label>
+                            <select class="monster-parts-skill"
+                                    name="monster-parts-skill-{{itemSheet.object._id}}"
+                                    id="monster-parts-skill-{{itemSheet.object._id}}"
+                                    data-actor-id="{{actorID}}"
+                                    data-imbuement-id="{{id}}"
+                                    data-item-id="{{itemID}}">
+                                <option value="" selected="selected" disabled hidden>{{flags.refinement.skill}}</option>
+                                {{#each skillOptions }}
+                                    <option value="{{@key}}">{{@key}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                    {{/if}}
                 </div>
             {{/if}}
         </div>
@@ -70,10 +86,7 @@
                 <div class="monster-parts-data">
                     <a class="data-group">
                         <div class="data-group-label">Current Value:</div>
-                        <div class="data-group-value">
-                            {{imbuedValue}}
-                            gp
-                        </div>
+                        <div class="data-group-value">{{imbuedValue}}gp</div>
                     </a>
                 </div>
                 <div class="value-controls">
@@ -142,41 +155,51 @@
                         </div>
                     {{/if}}
                     {{#if ../isEquipment }}
-                        <div class="data-group">
-                            <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
-                            <select class="monster-parts-property"
-                                    name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                    id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                    data-actor-id="{{actorID}}"
-                                    data-imbuement-id="{{id}}"
-                                    data-item-id="{{itemID}}">
-                                <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
-                                {{#each (lookup ../imbuementData.equipment ../flags.refinement.refinementPath) }}
-                                    <option value="{{@key}}">{{name}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
-                    {{/if}}
-                    {{#unless ../isWeapon}}
-                    {{#unless ../isEquipment}}
-                    <div class="data-group">
-                        <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
-                        <select class="monster-parts-property"
-                                name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                data-actor-id="{{actorID}}"
-                                data-imbuement-id="{{id}}"
-                                data-item-id="{{itemID}}">
-                            <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
-                            {{#each (lookup ../imbuementData ../itemSheet.object.type) }}
-                                <option value="{{@key}}">{{name}}</option>
-                            {{/each}}
-                        </select>
-                    </div>
-                {{/unless}}
+                        {{#if ../isSkillItem }}
+                            <div class="data-group">
+                                <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
+                                <select class="monster-parts-property"
+                                        name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                                        id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                                        data-actor-id="{{actorID}}"
+                                        data-imbuement-id="{{id}}"
+                                        data-item-id="{{itemID}}">
+                                    <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
+                                    {{#with (lookup ../skillOptions ../flags.refinement.skill)}}
+                                        <option value={{ability}}>{{ability}}
+                                        </option>
+                                    {{/with}}
+                                    <option value="spell">Spell</option>
+                                </select>
+                            </div>
+                        {{/if}}
+                        {{#unless ../isSkillItem}}
+                        <a class="data-group">
+                            <div class="data-group-label">Property:</div>
+                            <div class="data-group-value">{{../imbuementData.equipment.perception.sensory.name}}</div>
+                        </a>
+                    {{/unless}}
+                {{/if}}
+                {{#unless ../isWeapon}}
+                {{#unless ../isEquipment}}
+                <div class="data-group">
+                    <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
+                    <select class="monster-parts-property"
+                            name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                            id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                            data-actor-id="{{actorID}}"
+                            data-imbuement-id="{{id}}"
+                            data-item-id="{{itemID}}">
+                        <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
+                        {{#each (lookup ../imbuementData ../itemSheet.object.type) }}
+                            <option value="{{@key}}">{{name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
             {{/unless}}
-        </div>
+        {{/unless}}
     </div>
+</div>
 </fieldset>
 {{/each}}
 </section>
