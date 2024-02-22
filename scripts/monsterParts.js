@@ -33,18 +33,29 @@ class MonsterParts {
 		}
 	}
 
-	static initialize() {
-		this.MonsterPartsTab = new MonsterPartsTab();
-	}
+	static initialize() {}
 
-	static async getMonsterPartsFlag(itemSheet, scope, key) {
-		// Check for flag and initialize it if it doesn't exist
-		try {
-			return await itemSheet.getFlag(MonsterParts.ID, scope)[key];
-		} catch {
-			await itemSheet.setFlag(MonsterParts.ID, scope, { [key]: '' });
-			MonsterParts.log(false, `Initialized ${key} in ${scope}`);
-			return await itemSheet.getFlag(MonsterParts.ID, scope)[key];
+	static async getMonsterPartsFlag(itemSheet, scope, flag, key) {
+		// Check for flags and initialize if they don't exist
+		const flags = itemSheet.flags;
+		this.log(false, 'getMonsterPartsFlag | ', {
+			scopeExists: flags.hasOwnProperty(scope),
+			flags,
+			scope,
+			flag,
+			key,
+		});
+		if (
+			flags.hasOwnProperty(scope) &&
+			flags[scope].hasOwnProperty(flag) &&
+			flags[scope][flag].hasOwnProperty(key)
+		) {
+			// property exists
+			return flags[scope][flag][key];
+		} else {
+			// property does not exist
+			flags[scope][flag] = { [key]: '' };
+			return flags[scope][flag][key];
 		}
 	}
 
@@ -52,7 +63,7 @@ class MonsterParts {
 		const flags = itemSheet.object.flags[this.ID];
 		const itemSheetTabs = html.find('[class="tabs"]');
 		const monsterPartsBody = html.find('[class="sheet-body"]');
-		const itemImbuements = ImbuementsSheetData.getImbuementsForItem(
+		const itemImbuements = await ImbuementsSheetData.getImbuementsForItem(
 			actorID,
 			itemID
 		);
@@ -61,6 +72,7 @@ class MonsterParts {
 		);
 		const refinementType = await this.getMonsterPartsFlag(
 			itemSheet.object,
+			MonsterParts.ID,
 			MonsterParts.FLAGS.REFINEMENT,
 			'refinementType'
 		);
@@ -130,11 +142,11 @@ class RefinementSheetData {
 		} else if (numImbuements > potency) {
 			for (let i = numImbuements; i > potency; i--) {
 				for (let imbuement in imbuements) {
-					MonsterParts.log(false, 'deleteImbuement on Refinement update | ', {
-						imbuement: imbuements[imbuement],
-						i,
-					});
 					if (imbuements[imbuement].property === i) {
+						MonsterParts.log(false, 'deleteImbuement on Refinement update | ', {
+							imbuement: imbuements[imbuement],
+							i,
+						});
 						ImbuementsSheetData.deleteImbuement(
 							actorID,
 							imbuements[imbuement].id
@@ -157,10 +169,12 @@ class RefinementSheetData {
 		);
 		const itemLevel = levelData.itemLevel;
 		const itemID = itemSheet._id;
-		const imbuements = ImbuementsSheetData.getImbuementsForItem(
+		const imbuements = await ImbuementsSheetData.getImbuementsForItem(
 			actorID,
 			itemID
 		);
+
+		const traits = [...itemSheet.system.traits.value];
 
 		const numImbuements =
 			typeof imbuements === 'undefined' ? 0 : Object.keys(imbuements).length;
@@ -194,6 +208,7 @@ class RefinementSheetData {
 						runes: { potency: weaponPotency, striking },
 					},
 				});
+				MonsterParts.log(false, 'Weapon Sheet updated | ', { updateData });
 				break;
 
 			case 'armor':
@@ -216,12 +231,17 @@ class RefinementSheetData {
 						runes: { potency: armorPotency, resilient },
 					},
 				});
+				MonsterParts.log(false, 'Armor Sheet updated | ', { updateData });
 				break;
 
 			case 'equipment':
 				const imbuementCount = levelData.levels[itemLevel].imbuements;
+				MonsterParts.log(false, 'Equipment Sheet updated | ', {
+					updateData,
+					imbuementCount,
+				});
 
-				this.updateImbuementCount(
+				await this.updateImbuementCount(
 					numImbuements,
 					imbuementCount,
 					actorID,
@@ -229,23 +249,32 @@ class RefinementSheetData {
 					imbuements
 				);
 
+				if (!traits.includes('invested')) {
+					traits.push('invested');
+				}
+
+				if (!traits.includes('magical')) {
+					traits.push('magical');
+				}
+
 				await itemSheet.update({
+					flags: {
+						[MonsterParts.ID]: {
+							[MonsterParts.FLAGS.REFINEMENT]: updateData,
+						},
+					},
 					system: {
+						specific: { material: {}, runes: {} },
 						price: { value: { gp: updateData.itemValue } },
 						level: { value: itemLevel },
 						rules: updateData.rules,
 						traits: {
-							value: [...itemSheet.system.traits.value, 'invested', 'magical'],
+							value: traits,
 						},
 						usage: { type: 'worn', value: 'worn' },
 					},
 				});
 
-				itemSheet.setFlag(
-					MonsterParts.ID,
-					MonsterParts.FLAGS.REFINEMENT,
-					updateData
-				);
 				break;
 
 			case 'shield':
@@ -454,19 +483,23 @@ Hooks.on('updateActor', (characterSheet) => {
 
 			const itemSheet = game.actors.get(actorID).items.get(item._id);
 
-			RefinementSheetData.updateRefinement(
-				itemSheet,
-				item.system.price.value.gp,
-				{}
-			);
+			RefinementSheetData.updateRefinement(itemSheet, {});
 		}
 	}
+});
+
+Hooks.on('updateItem', (event, FormData) => {
+	MonsterParts.log(false, '_updateObject Event | ', { event, FormData });
 });
 
 Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	const itemType = itemSheet.object.type;
 	const itemID = itemSheet.object._id;
 	const actorID = itemSheet.actor._id;
+	const imbuements = await ImbuementsSheetData.getImbuementsForItem(
+		actorID,
+		itemID
+	);
 
 	await MonsterParts.renderMonsterPartsTab(html, itemID, actorID, itemSheet);
 
@@ -498,57 +531,52 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	html.on('change', '.monster-parts-refinement-property', async (event) => {
 		const selectedOption =
 			event.currentTarget.selectedOptions[0].attributes[0].value;
-		const currentPath = await MonsterParts.getMonsterPartsFlag(
-			itemSheet.object,
-			MonsterParts.FLAGS.REFINEMENT,
-			'refinementType'
-		);
-		const pathChanged = currentPath !== selectedOption;
 
 		if (selectedOption === 'skill') {
-			await RefinementSheetData.updateRefinement(
-				itemSheet.object,
-				itemSheet.object.system.price.value.gp,
-				{ refinementType: selectedOption, skill: '' }
-			);
+			await RefinementSheetData.updateRefinement(itemSheet.object, {
+				refinementType: selectedOption,
+				skill: '',
+			});
+			for (let imbuementID in imbuements) {
+				await ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+					name: 'New Imbuement',
+					imbuedProperty: '',
+				});
+			}
 			event.stopPropagation();
 		} else {
+			// Get the Flat Modifier rule data, set the selector, and add it to the rules array.
 			const flatModifier = await foundry.utils.fetchJsonWithTimeout(
 				MonsterParts.RULES.FLATMODIFIER
 			);
+			// rules created in the UI assign the selector as an array with a single item.
 			flatModifier.selector = [selectedOption];
 			const rules = [...itemSheet.object.system.rules, flatModifier];
 
-			await RefinementSheetData.updateRefinement(
-				itemSheet.object,
-				itemSheet.object.system.price.value.gp,
-				{ refinementType: selectedOption, rules }
-			);
-
-			MonsterParts.log(false, 'Perception Item updated | ', { rules });
-			event.stopPropagation();
-		}
-
-		// Remove the imbuedProperty value if the refinement path has changed
-		if (pathChanged) {
-			const imbuements = ImbuementsSheetData.getImbuementsForItem(
-				actorID,
-				itemID
-			);
-
-			for (let imbuementID in imbuements) {
-				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
-					imbuedProperty: '',
-					name: 'New Imbuement',
+			// There should only ever be 1 imbuement on an equipment item
+			for (let imbuement in imbuements) {
+				// Sensory is the only Perception Item imbuement option
+				await ImbuementsSheetData.updateImbuement(actorID, imbuement, {
+					imbuedProperty: 'sensory',
+					name: 'Sensory',
 				});
 			}
+
+			await RefinementSheetData.updateRefinement(itemSheet.object, {
+				refinementType: selectedOption,
+				rules,
+			});
+
+			MonsterParts.log(false, 'Perception Item updated | ', {
+				rules,
+				imbuements,
+			});
+			event.stopPropagation();
 		}
 
 		MonsterParts.log(false, '.monster-parts-refinement-property changed | ', {
 			itemSheet,
 			selectedOption,
-			currentPath,
-			pathChanged,
 		});
 		event.stopPropagation();
 	});
@@ -556,33 +584,36 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	// Change the skill on a skill item.
 	html.on('change', '.monster-parts-skill', async (event) => {
 		const skill = event.currentTarget.selectedOptions[0].attributes[0].value;
-		const currentskill = await MonsterParts.getMonsterPartsFlag(
+		const currentSkill = await MonsterParts.getMonsterPartsFlag(
 			itemSheet.object,
+			MonsterParts.ID,
 			MonsterParts.FLAGS.REFINEMENT,
 			'skill'
 		);
 
-		// Check if the selected skill has changed.
-		const skillChanged = skill !== currentskill;
+		MonsterParts.log(false, '.monster-parts-skill changed | ', {
+			skill,
+			currentSkill,
+		});
 
-		if (skillChanged) {
+		if (skill !== currentSkill) {
 			const flatModifier = await foundry.utils.fetchJsonWithTimeout(
 				MonsterParts.RULES.FLATMODIFIER
 			);
 			flatModifier.selector = [skill];
 			const rules = [...itemSheet.object.system.rules, flatModifier];
 
-			MonsterParts.log(false, 'Skill changed | ', {
-				rules,
-				skill,
-				flatModifier,
-			});
+			for (let imbuementID in imbuements) {
+				ImbuementsSheetData.updateImbuement(actorID, imbuementID, {
+					name: 'New Imbuement',
+					imbuedProperty: '',
+				});
+			}
 
-			await RefinementSheetData.updateRefinement(
-				itemSheet.object,
-				itemSheet.object.system.price.value.gp,
-				{ skill, rules }
-			);
+			await RefinementSheetData.updateRefinement(itemSheet.object, {
+				skill,
+				rules,
+			});
 			event.stopPropagation();
 		}
 	});
@@ -639,6 +670,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		MonsterParts.log(false, '.gold-value-input Changed | ', {
 			event,
 		});
+		event.preventDefault();
 		event.stopPropagation();
 	});
 
@@ -738,7 +770,9 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 						event.stopPropagation();
 						break;
 					} else {
-						RefinementSheetData.updateRefinement(itemSheet.object, 0, {});
+						RefinementSheetData.updateRefinement(itemSheet.object, {
+							itemValue: 0,
+						});
 						event.stopPropagation();
 						break;
 					}
