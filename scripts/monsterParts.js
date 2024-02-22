@@ -33,32 +33,6 @@ class MonsterParts {
 		}
 	}
 
-	static initialize() {}
-
-	static async getMonsterPartsFlag(itemSheet, scope, flag, key) {
-		// Check for flags and initialize if they don't exist
-		const flags = itemSheet.flags;
-		this.log(false, 'getMonsterPartsFlag | ', {
-			scopeExists: flags.hasOwnProperty(scope),
-			flags,
-			scope,
-			flag,
-			key,
-		});
-		if (
-			flags.hasOwnProperty(scope) &&
-			flags[scope].hasOwnProperty(flag) &&
-			flags[scope][flag].hasOwnProperty(key)
-		) {
-			// property exists
-			return flags[scope][flag][key];
-		} else {
-			// property does not exist
-			flags[scope][flag] = { [key]: '' };
-			return flags[scope][flag][key];
-		}
-	}
-
 	static async renderMonsterPartsTab(html, itemID, actorID, itemSheet) {
 		const flags = itemSheet.object.flags[this.ID];
 		const itemSheetTabs = html.find('[class="tabs"]');
@@ -70,12 +44,7 @@ class MonsterParts {
 		const imbuementData = await foundry.utils.fetchJsonWithTimeout(
 			MonsterParts.DATA.IMBUEMENTDATA
 		);
-		const refinementType = await this.getMonsterPartsFlag(
-			itemSheet.object,
-			MonsterParts.ID,
-			MonsterParts.FLAGS.REFINEMENT,
-			'refinementType'
-		);
+
 		const skillOptions = await foundry.utils.fetchJsonWithTimeout(
 			MonsterParts.DATA.SKILLDATA
 		);
@@ -83,7 +52,7 @@ class MonsterParts {
 		// Set the itemType booleans
 		const isWeapon = itemSheet.object.type === 'weapon' ? true : false;
 		const isEquipment = itemSheet.object.type === 'equipment' ? true : false;
-		const isSkillItem = refinementType === 'skill' ? true : false;
+		const isSkillItem = false;
 
 		// Inject Imbuements tab.
 		itemSheetTabs.append(
@@ -116,6 +85,143 @@ class MonsterParts {
 		});
 
 		return monsterPartsBody.append(renderedTemplate);
+	}
+
+	static async fetchJsonWithTimeout(path) {
+		return await foundry.utils.fetchJsonWithTimeout(path);
+	}
+
+	static getMonsterPartsFlags(itemSheet) {
+		return itemSheet.flags[this.ID];
+	}
+
+	static initializeItem(itemSheet) {
+		const imbuements = this.initializeImbuements(itemSheet);
+		MonsterParts.updateItem(
+			itemSheet,
+			{ itemInitialized: true },
+			imbuements,
+			{}
+		);
+	}
+
+	static initializeImbuements(itemSheet) {
+		const itemType = itemSheet.type;
+		const itemID = itemSheet._id;
+		const actorID = itemSheet.parent._id;
+		switch (itemType) {
+			case 'weapon':
+			case 'armor':
+				const imbuements = {};
+				for (let i = 0; i < 3; i++) {
+					const imbuementID = foundry.utils.randomID(16);
+					imbuements[imbuementID] = {
+						id: imbuementID,
+						name: 'New Imbuement',
+						imbuedProperty: '',
+						imbuedPath: '',
+						itemID,
+						actorID,
+						imbuedValue: 0,
+						imbuementNumber: i + 1,
+					};
+				}
+				this.log(false, 'imbuements initialized | ', { imbuements });
+				return imbuements;
+				break; // Don't want to forget to add break if I change how this function returns.
+			case 'equipment':
+				const imbuementID = foundry.utils.randomID(16);
+				return {
+					[imbuementID]: {
+						id: imbuementID,
+						name: 'New Imbuement',
+						imbuedProperty: '',
+						imbuedPath: '',
+						itemID,
+						actorID,
+						imbuedValue: 0,
+						imbuementNumber: 1,
+					},
+				};
+				break; // Don't want to forget to add break if I change how this function returns.
+		}
+	}
+
+	static getImbuements(itemSheet) {
+		return itemSheet.flags[this.ID][this.FLAGS.IMBUEMENTS];
+	}
+
+	static async updateItemLevel(itemSheet, itemValue) {
+		const levelData = await this.fetchJsonWithTimeout(
+			MonsterParts.DATA.REFINEMENTLEVELDATA
+		);
+		const itemType = itemSheet.type;
+		const actorID = itemSheet.parent._id;
+		const itemLevel = Number(
+			Object.keys(levelData[itemType]).find(
+				(key) => levelData[itemType][key].threshold > itemValue
+			) - 1
+		);
+		const actorLevel = game.actors.get(actorID).level;
+
+		MonsterParts.log(false, 'updateItemLevel | ', {
+			levelData,
+			itemLevelData: levelData[itemType],
+			itemLevel,
+			itemType,
+			itemValue,
+			actorLevel,
+		});
+
+		const lowerLevel =
+			itemLevel || itemLevel === 0
+				? Math.min(actorLevel, itemLevel)
+				: actorLevel;
+
+		return { itemLevel: lowerLevel, levels: levelData[itemType] };
+	}
+
+	static async updateItem(
+		itemSheet,
+		refinementData,
+		imbuementData,
+		updateData
+	) {
+		// init the update packages
+		const flags = {
+			[this.ID]: {
+				[this.FLAGS.REFINEMENT]: refinementData,
+				[this.FLAGS.IMBUEMENTS]: imbuementData,
+			},
+		};
+		const system = {};
+
+		// handle itemValue change
+		if (refinementData.itemValue) {
+			// calculate item level
+			const levelData = await this.updateItemLevel(
+				itemSheet,
+				refinementData.itemValue
+			);
+			const itemLevel = levelData.itemLevel;
+
+			// package the system update
+			system.price = { value: { gp: refinementData.itemValue } };
+			system.level = { value: itemLevel };
+			// package the flags update
+			flags[this.ID][this.FLAGS.REFINEMENT] = levelData.levels[itemLevel];
+		}
+
+		this.log(false, 'Updating Item | ', {
+			flags,
+			system,
+		});
+
+		// update the item sheet
+		return itemSheet.update({
+			flags,
+			system,
+		});
 	}
 }
 
@@ -241,7 +347,7 @@ class RefinementSheetData {
 					imbuementCount,
 				});
 
-				await this.updateImbuementCount(
+				this.updateImbuementCount(
 					numImbuements,
 					imbuementCount,
 					actorID,
@@ -461,8 +567,8 @@ Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
 	registerPackageDebugFlag(MonsterParts.ID);
 });
 
-Hooks.once('init', () => {
-	MonsterParts.initialize();
+Hooks.on('createItem', async (itemSheet) => {
+	MonsterParts.initializeItem(itemSheet.object);
 });
 
 Hooks.on('updateActor', (characterSheet) => {
@@ -488,18 +594,20 @@ Hooks.on('updateActor', (characterSheet) => {
 	}
 });
 
-Hooks.on('updateItem', (event, FormData) => {
-	MonsterParts.log(false, '_updateObject Event | ', { event, FormData });
-});
-
 Hooks.on('renderItemSheet', async (itemSheet, html) => {
+	// Initialize Monster Parts data if it hasn't already been initialized
+	const itemInitialized = MonsterParts.getMonsterPartsFlags(itemSheet.object)[
+		MonsterParts.FLAGS.REFINEMENT
+	].itemInitialized;
+
+	if (!itemInitialized) {
+		MonsterParts.initializeItem(itemSheet.object);
+	}
+
 	const itemType = itemSheet.object.type;
 	const itemID = itemSheet.object._id;
 	const actorID = itemSheet.actor._id;
-	const imbuements = await ImbuementsSheetData.getImbuementsForItem(
-		actorID,
-		itemID
-	);
+	const imbuements = MonsterParts.getImbuements(itemSheet.object);
 
 	await MonsterParts.renderMonsterPartsTab(html, itemID, actorID, itemSheet);
 
@@ -534,7 +642,6 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 		if (selectedOption === 'skill') {
 			await RefinementSheetData.updateRefinement(itemSheet.object, {
-				refinementType: selectedOption,
 				skill: '',
 			});
 			for (let imbuementID in imbuements) {
@@ -563,7 +670,6 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			}
 
 			await RefinementSheetData.updateRefinement(itemSheet.object, {
-				refinementType: selectedOption,
 				rules,
 			});
 
@@ -584,16 +690,9 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	// Change the skill on a skill item.
 	html.on('change', '.monster-parts-skill', async (event) => {
 		const skill = event.currentTarget.selectedOptions[0].attributes[0].value;
-		const currentSkill = await MonsterParts.getMonsterPartsFlag(
-			itemSheet.object,
-			MonsterParts.ID,
-			MonsterParts.FLAGS.REFINEMENT,
-			'skill'
-		);
 
 		MonsterParts.log(false, '.monster-parts-skill changed | ', {
 			skill,
-			currentSkill,
 		});
 
 		if (skill !== currentSkill) {

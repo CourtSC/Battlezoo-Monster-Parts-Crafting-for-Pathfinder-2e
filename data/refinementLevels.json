@@ -3,106 +3,127 @@
 		"0": {
 			"threshold": 0,
 			"potency": 0,
+			"imbuements": 0,
 			"striking": 0
 		},
 		"1": {
 			"threshold": 20,
 			"potency": 0,
+			"imbuements": 0,
 			"striking": 0
 		},
 		"2": {
 			"threshold": 35,
 			"potency": 1,
+			"imbuements": 1,
 			"striking": 0
 		},
 		"3": {
 			"threshold": 60,
 			"potency": 1,
+			"imbuements": 1,
 			"striking": 0
 		},
 		"4": {
 			"threshold": 100,
 			"potency": 1,
+			"imbuements": 1,
 			"striking": 1
 		},
 		"5": {
 			"threshold": 160,
 			"potency": 1,
+			"imbuements": 1,
 			"striking": 1
 		},
 		"6": {
 			"threshold": 250,
 			"potency": 1,
+			"imbuements": 1,
 			"striking": 1
 		},
 		"7": {
 			"threshold": 360,
 			"potency": 1,
+			"imbuements": 1,
 			"striking": 1
 		},
 		"8": {
 			"threshold": 500,
 			"potency": 1,
+			"imbuements": 1,
 			"striking": 1
 		},
 		"9": {
 			"threshold": 700,
 			"potency": 1,
+			"imbuements": 1,
 			"striking": 1
 		},
 		"10": {
 			"threshold": 1000,
 			"potency": 2,
+			"imbuements": 2,
 			"striking": 1
 		},
 		"11": {
 			"threshold": 1400,
 			"potency": 2,
+			"imbuements": 2,
 			"striking": 1
 		},
 		"12": {
 			"threshold": 2000,
 			"potency": 2,
+			"imbuements": 2,
 			"striking": 2
 		},
 		"13": {
 			"threshold": 3000,
 			"potency": 2,
+			"imbuements": 2,
 			"striking": 2
 		},
 		"14": {
 			"threshold": 4500,
 			"potency": 2,
+			"imbuements": 2,
 			"striking": 2
 		},
 		"15": {
 			"threshold": 6500,
 			"potency": 2,
+			"imbuements": 2,
 			"striking": 2
 		},
 		"16": {
 			"threshold": 10000,
 			"potency": 3,
+			"imbuements": 3,
 			"striking": 2
 		},
 		"17": {
 			"threshold": 15000,
 			"potency": 3,
+			"imbuements": 3,
 			"striking": 2
 		},
 		"18": {
 			"threshold": 24000,
 			"potency": 3,
+			"imbuements": 3,
 			"striking": 2
 		},
 		"19": {
 			"threshold": 40000,
 			"potency": 3,
+			"imbuements": 3,
 			"striking": 3
 		},
 		"20": {
 			"threshold": 70000,
 			"potency": 3,
+			"imbuements": 3,
 			"striking": 3
 		}
 	},
@@ -135,81 +156,97 @@
 		"5": {
 			"threshold": 160,
 			"potency": 1,
+			"imbuements": 1,
 			"resilient": 0
 		},
 		"6": {
 			"threshold": 250,
 			"potency": 1,
+			"imbuements": 1,
 			"resilient": 0
 		},
 		"7": {
 			"threshold": 360,
 			"potency": 1,
+			"imbuements": 1,
 			"resilient": 0
 		},
 		"8": {
 			"threshold": 500,
 			"potency": 1,
+			"imbuements": 1,
 			"resilient": 1
 		},
 		"9": {
 			"threshold": 700,
 			"potency": 1,
+			"imbuements": 1,
 			"resilient": 1
 		},
 		"10": {
 			"threshold": 1000,
 			"potency": 2,
+			"imbuements": 2,
 			"resilient": 1
 		},
 		"11": {
 			"threshold": 1400,
 			"potency": 2,
+			"imbuements": 2,
 			"resilient": 1
 		},
 		"12": {
 			"threshold": 2000,
 			"potency": 2,
+			"imbuements": 2,
 			"resilient": 1
 		},
 		"13": {
 			"threshold": 3000,
 			"potency": 2,
+			"imbuements": 2,
 			"resilient": 1
 		},
 		"14": {
 			"threshold": 4500,
 			"potency": 2,
+			"imbuements": 2,
 			"resilient": 2
 		},
 		"15": {
 			"threshold": 6500,
 			"potency": 2,
+			"imbuements": 2,
 			"resilient": 2
 		},
 		"16": {
 			"threshold": 10000,
 			"potency": 3,
+			"imbuements": 3,
 			"resilient": 2
 		},
 		"17": {
 			"threshold": 15000,
 			"potency": 3,
+			"imbuements": 3,
 			"resilient": 2
 		},
 		"18": {
 			"threshold": 24000,
 			"potency": 3,
+			"imbuements": 3,
 			"resilient": 2
 		},
 		"19": {
 			"threshold": 40000,
 			"potency": 3,
+			"imbuements": 3,
 			"resilient": 2
 		},
 		"20": {
 			"threshold": 70000,
 			"potency": 3,
+			"imbuements": 3,
 			"resilient": 3
 		}
 	},
