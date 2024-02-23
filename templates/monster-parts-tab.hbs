@@ -6,38 +6,29 @@
             <div class="monster-parts-data">
                 <a class="data-group">
                     <div class="data-group-label">Current Value:</div>
-                    <div class="data-group-value">{{itemSheet.object.system.price.value.gp}}gp</div>
+                    <div class="data-group-value">{{itemSheet.system.price.value.gp}}gp</div>
                 </a>
             </div>
             <div class="value-controls">
                 <label class="gold-value-label"
-                       for="refinement-value-input-{{itemSheet.object._id}}">Add Parts:</label>
+                       for="refinement-value-input-{{itemSheet._id}}">Add Parts:</label>
                 <input class="gold-value-input"
                        type="number"
-                       name="refinement-value-input-{{itemSheet.object._id}}"
-                       id="refinement-value-input-{{itemSheet.object._id}}"
+                       name="refinement-value-input-{{itemSheet._id}}"
+                       id="refinement-value-input-{{itemSheet._id}}"
                        data-tooltip="Enter value to invest"
                        value=""
                        placeholder="0 gp"
                        min="0"
-                       step="1"
-                       data-actor-id="{{actorID}}"
-                       data-imbuement-id="{{id}}"
-                       data-item-id="{{itemID}}" />
+                       step="1" />
                 <button class="add-gold-button"
                         data-action="refine-add-gold"
-                        data-tooltip="Add Value"
-                        data-actor-id="{{actorID}}"
-                        data-imbuement-id="{{id}}"
-                        data-item-id="{{itemID}}">
+                        data-tooltip="Add Value">
                     <i class="fa-solid fa-plus"></i>
                 </button>
                 <button class="subtract-gold-button"
                         data-action="refine-subtract-gold"
-                        data-tooltip="Subtract Value"
-                        data-actor-id="{{actorID}}"
-                        data-imbuement-id="{{id}}"
-                        data-item-id="{{itemID}}">
+                        data-tooltip="Subtract Value">
                     <i class="fa-solid fa-minus"></i>
                 </button>
             </div>
@@ -46,10 +37,10 @@
             <div class="monster-parts-column-right">
                 <div class="monster-parts-data">
                     <div class="data-group">
-                        <label for="monster-parts-property-{{itemSheet.object._id}}">Item Type:</label>
+                        <label for="monster-parts-property-{{itemSheet._id}}">Item Type:</label>
                         <select class="monster-parts-refinement-property"
-                                name="monster-parts-property-{{itemSheet.object._id}}"
-                                id="monster-parts-property-{{itemSheet.object._id}}"
+                                name="monster-parts-property-{{itemSheet._id}}"
+                                id="monster-parts-property-{{itemSheet._id}}"
                                 data-actor-id="{{actorID}}"
                                 data-imbuement-id="{{id}}"
                                 data-item-id="{{itemID}}">
@@ -61,10 +52,10 @@
                     </div>
                     {{#if isSkillItem }}
                         <div class="data-group">
-                            <label for="monster-parts-skill-{{itemSheet.object._id}}">Skill:</label>
+                            <label for="monster-parts-skill-{{itemSheet._id}}">Skill:</label>
                             <select class="monster-parts-skill"
-                                    name="monster-parts-skill-{{itemSheet.object._id}}"
-                                    id="monster-parts-skill-{{itemSheet.object._id}}"
+                                    name="monster-parts-skill-{{itemSheet._id}}"
+                                    id="monster-parts-skill-{{itemSheet._id}}"
                                     data-actor-id="{{actorID}}"
                                     data-imbuement-id="{{id}}"
                                     data-item-id="{{itemID}}">
@@ -80,129 +71,131 @@
         </div>
     </fieldset>
     {{#each imbuements }}
-        <fieldset class="imbuement">
-            <legend class="imbuement-title">{{name}}</legend>
-            <div class="monster-parts-column-left">
-                <div class="monster-parts-data">
-                    <a class="data-group">
-                        <div class="data-group-label">Current Value:</div>
-                        <div class="data-group-value">{{imbuedValue}}gp</div>
-                    </a>
+        {{#if render }}
+            <fieldset class="imbuement">
+                <legend class="imbuement-title">{{name}}</legend>
+                <div class="monster-parts-column-left">
+                    <div class="monster-parts-data">
+                        <a class="data-group">
+                            <div class="data-group-label">Current Value:</div>
+                            <div class="data-group-value">{{imbuedValue}}gp</div>
+                        </a>
+                    </div>
+                    <div class="value-controls">
+                        <label class="gold-value-label"
+                               for="gold-value-input-{{this.id}}-{{../itemSheet._id}}">Add Parts:</label>
+                        <input class="gold-value-input"
+                               type="number"
+                               name="gold-value-input-{{this.id}}-{{../itemSheet._id}}"
+                               id="gold-value-input-{{this.id}}-{{../itemSheet._id}}"
+                               data-tooltip="Enter value to invest"
+                               value=""
+                               placeholder="0 gp"
+                               min="0"
+                               step="1"
+                               data-actor-id="{{actorID}}"
+                               data-imbuement-id="{{id}}"
+                               data-item-id="{{itemID}}" />
+                        <button class="add-gold-button"
+                                data-action="imbue-add-gold"
+                                data-tooltip="Add Value"
+                                data-actor-id="{{actorID}}"
+                                data-imbuement-id="{{id}}"
+                                data-item-id="{{itemID}}">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                        <button class="subtract-gold-button"
+                                data-action="imbue-subtract-gold"
+                                data-tooltip="Subtract Value"
+                                data-actor-id="{{actorID}}"
+                                data-imbuement-id="{{id}}"
+                                data-item-id="{{itemID}}">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="value-controls">
-                    <label class="gold-value-label"
-                           for="gold-value-input-{{this.id}}-{{../itemSheet.object._id}}">Add Parts:</label>
-                    <input class="gold-value-input"
-                           type="number"
-                           name="gold-value-input-{{this.id}}-{{../itemSheet.object._id}}"
-                           id="gold-value-input-{{this.id}}-{{../itemSheet.object._id}}"
-                           data-tooltip="Enter value to invest"
-                           value=""
-                           placeholder="0 gp"
-                           min="0"
-                           step="1"
-                           data-actor-id="{{actorID}}"
-                           data-imbuement-id="{{id}}"
-                           data-item-id="{{itemID}}" />
-                    <button class="add-gold-button"
-                            data-action="imbue-add-gold"
-                            data-tooltip="Add Value"
-                            data-actor-id="{{actorID}}"
-                            data-imbuement-id="{{id}}"
-                            data-item-id="{{itemID}}">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                    <button class="subtract-gold-button"
-                            data-action="imbue-subtract-gold"
-                            data-tooltip="Subtract Value"
-                            data-actor-id="{{actorID}}"
-                            data-imbuement-id="{{id}}"
-                            data-item-id="{{itemID}}">
-                        <i class="fa-solid fa-minus"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="monster-parts-column-right">
-                <div class="monster-parts-data">
-                    {{#if ../isWeapon }}
-                        <div class="data-group">
-                            <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
-                            <select class="monster-parts-property"
-                                    name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                    id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                    data-actor-id="{{actorID}}"
-                                    data-imbuement-id="{{id}}"
-                                    data-item-id="{{itemID}}">
-                                <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
-                                {{#each ../imbuementData.weapon.properties }}
-                                    <option value="{{@key}}">{{name}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
-                        <div class="data-group">
-                            <label for="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}">Path:</label>
-                            <select class="monster-parts-path"
-                                    name="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}"
-                                    id="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}"
-                                    data-actor-id="{{actorID}}"
-                                    data-imbuement-id="{{id}}"
-                                    data-item-id="{{itemID}}">
-                                <option value="" selected="selected" disabled hidden>{{imbuedPath}}</option>
-                                {{#each ../imbuementData.weapon.paths }}
-                                    <option value="{{@key}}">{{this}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
-                    {{/if}}
-                    {{#if ../isEquipment }}
-                        {{#if ../isSkillItem }}
+                <div class="monster-parts-column-right">
+                    <div class="monster-parts-data">
+                        {{#if ../isWeapon }}
                             <div class="data-group">
-                                <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
+                                <label for="monster-parts-property-{{this.id}}-{{../itemSheet._id}}">Property:</label>
                                 <select class="monster-parts-property"
-                                        name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                        id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
+                                        name="monster-parts-property-{{this.id}}-{{../itemSheet._id}}"
+                                        id="monster-parts-property-{{this.id}}-{{../itemSheet._id}}"
                                         data-actor-id="{{actorID}}"
                                         data-imbuement-id="{{id}}"
                                         data-item-id="{{itemID}}">
                                     <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
-                                    {{#with (lookup ../skillOptions ../flags.refinement.skill)}}
-                                        <option value={{ability}}>{{ability}}
-                                        </option>
-                                    {{/with}}
-                                    <option value="spell">Spell</option>
+                                    {{#each ../imbuementData.weapon.properties }}
+                                        <option value="{{@key}}">{{name}}</option>
+                                    {{/each}}
+                                </select>
+                            </div>
+                            <div class="data-group">
+                                <label for="monster-parts-path-{{this.id}}-{{../itemSheet._id}}">Path:</label>
+                                <select class="monster-parts-path"
+                                        name="monster-parts-path-{{this.id}}-{{../itemSheet._id}}"
+                                        id="monster-parts-path-{{this.id}}-{{../itemSheet._id}}"
+                                        data-actor-id="{{actorID}}"
+                                        data-imbuement-id="{{id}}"
+                                        data-item-id="{{itemID}}">
+                                    <option value="" selected="selected" disabled hidden>{{imbuedPath}}</option>
+                                    {{#each ../imbuementData.weapon.paths }}
+                                        <option value="{{@key}}">{{this}}</option>
+                                    {{/each}}
                                 </select>
                             </div>
                         {{/if}}
-                        {{#unless ../isSkillItem}}
-                        <a class="data-group">
-                            <div class="data-group-label">Property:</div>
-                            <div class="data-group-value">
-                                {{#if imbuedProperty }}
-                                    {{name}}{{/if}}
+                        {{#if ../isEquipment }}
+                            {{#if ../isSkillItem }}
+                                <div class="data-group">
+                                    <label for="monster-parts-property-{{this.id}}-{{../itemSheet._id}}">Property:</label>
+                                    <select class="monster-parts-property"
+                                            name="monster-parts-property-{{this.id}}-{{../itemSheet._id}}"
+                                            id="monster-parts-property-{{this.id}}-{{../itemSheet._id}}"
+                                            data-actor-id="{{actorID}}"
+                                            data-imbuement-id="{{id}}"
+                                            data-item-id="{{itemID}}">
+                                        <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
+                                        {{#with (lookup ../skillOptions ../flags.refinement.skill)}}
+                                            <option value={{ability}}>{{ability}}
+                                            </option>
+                                        {{/with}}
+                                        <option value="spell">Spell</option>
+                                    </select>
                                 </div>
-                            </a>
-                        {{/unless}}
-                    {{/if}}
-                    {{#unless ../isWeapon}}
-                    {{#unless ../isEquipment}}
-                    <div class="data-group">
-                        <label for="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}">Property:</label>
-                        <select class="monster-parts-property"
-                                name="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                id="monster-parts-property-{{this.id}}-{{../itemSheet.object._id}}"
-                                data-actor-id="{{actorID}}"
-                                data-imbuement-id="{{id}}"
-                                data-item-id="{{itemID}}">
-                            <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
-                            {{#each (lookup ../imbuementData ../itemSheet.object.type) }}
-                                <option value="{{@key}}">{{name}}</option>
-                            {{/each}}
-                        </select>
-                    </div>
+                            {{/if}}
+                            {{#unless ../isSkillItem}}
+                            <a class="data-group">
+                                <div class="data-group-label">Property:</div>
+                                <div class="data-group-value">
+                                    {{#if imbuedProperty }}
+                                        {{name}}{{/if}}
+                                    </div>
+                                </a>
+                            {{/unless}}
+                        {{/if}}
+                        {{#unless ../isWeapon}}
+                        {{#unless ../isEquipment}}
+                        <div class="data-group">
+                            <label for="monster-parts-property-{{this.id}}-{{../itemSheet._id}}">Property:</label>
+                            <select class="monster-parts-property"
+                                    name="monster-parts-property-{{this.id}}-{{../itemSheet._id}}"
+                                    id="monster-parts-property-{{this.id}}-{{../itemSheet._id}}"
+                                    data-actor-id="{{actorID}}"
+                                    data-imbuement-id="{{id}}"
+                                    data-item-id="{{itemID}}">
+                                <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
+                                {{#each (lookup ../imbuementData ../itemSheet.type) }}
+                                    <option value="{{@key}}">{{name}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                    {{/unless}}
                 {{/unless}}
-            {{/unless}}
+            </div>
         </div>
-    </div>
-</fieldset>
+    </fieldset>
+{{/if}}
 {{/each}}
 </section>
