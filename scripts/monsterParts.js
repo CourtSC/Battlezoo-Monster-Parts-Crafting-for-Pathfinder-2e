@@ -519,29 +519,30 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			);
 			event.stopPropagation();
 		} else {
-			// Get the Flat Modifier rule data, set the selector, and add it to the rules array.
-			const flatModifier = await foundry.utils.fetchJsonWithTimeout(
-				MonsterParts.RULES.FLATMODIFIER
-			);
-			// rules created in the UI assign the selector as an array with a single item.
-			flatModifier.selector = [selectedOption];
-			const rules = [...initItemSheet.system.rules, flatModifier];
+			updatePackage.refinement = {
+				refinementProperties: {
+					refinementType: 'perceptionItem',
+					refinementName: 'perception',
+					refinementSkill: 'perception',
+				},
+			};
 
 			// There should only ever be 1 imbuement on an equipment item
-			for (let imbuement in imbuements) {
+			for (let imbuementID in imbuements) {
 				// Sensory is the only Perception Item imbuement option
-				await ImbuementsSheetData.updateImbuement(actorID, imbuement, {
-					imbuedProperty: 'sensory',
-					name: 'Sensory',
-				});
+				imbuements[imbuementID].imbuedProperty = 'sensory';
+				imbuements[imbuementID].name = 'Sensory';
 			}
+			updatePackage.imbuements = imbuements;
 
-			await RefinementSheetData.updateRefinement(initItemSheet, {
-				rules,
-			});
+			MonsterParts.updateItem(
+				initItemSheet,
+				updatePackage.refinement,
+				updatePackage.imbuements,
+				{}
+			);
 
 			MonsterParts.log(false, 'Perception Item updated | ', {
-				rules,
 				imbuements,
 			});
 			event.stopPropagation();
