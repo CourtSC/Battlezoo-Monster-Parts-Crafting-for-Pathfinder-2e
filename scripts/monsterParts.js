@@ -271,10 +271,7 @@ class MonsterParts {
 						MonsterParts.RULES.FLATMODIFIER
 					);
 					// Rules UI stores selectors as arrays
-					flatModifier.selector = [
-						itemSheet.flags[this.ID][this.FLAGS.REFINEMENT].refinementProperties
-							.refinementSkill,
-					];
+					flatModifier.selector = `{item|flags.${this.ID}[${this.FLAGS.REFINEMENT}].refinementProperties.refinementSkill}`;
 
 					this.log(false, 'Equipment Item Properties | ', {
 						flatModifier,
@@ -288,6 +285,8 @@ class MonsterParts {
 						},
 						flags: { [this.FLAGS.RULEAPPLIED]: true },
 					};
+				} else {
+					return { system: {}, flags: {} };
 				}
 
 				break;
@@ -402,6 +401,9 @@ class MonsterParts {
 		if (refinementData.refinementProperties) {
 			flags[this.ID][this.FLAGS.REFINEMENT].refinementProperties =
 				refinementData.refinementProperties;
+
+			system.rules = updateData.system.rules;
+			system.usage = updateData.system.usage;
 		}
 
 		this.log(false, 'Updating Item | ', {
@@ -511,14 +513,25 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 				imbuements[imbuementID].imbuedProperty = '';
 				updatePackage.imbuements = imbuements;
 			}
-			MonsterParts.updateItem(
+			return await MonsterParts.updateItem(
 				initItemSheet,
 				updatePackage.refinement,
 				updatePackage.imbuements,
 				{}
 			);
-			event.stopPropagation();
 		} else {
+			const flatModifier = await MonsterParts.fetchJsonWithTimeout(
+				MonsterParts.RULES.FLATMODIFIER
+			);
+			flatModifier.selector = ['perception'];
+
+			updatePackage.system = {
+				rules: [flatModifier],
+				usage: { type: 'worn', value: 'worn' },
+			};
+			updatePackage.flags = {
+				[MonsterParts.FLAGS.RULEAPPLIED]: true,
+			};
 			updatePackage.refinement = {
 				refinementProperties: {
 					refinementType: 'perceptionItem',
@@ -535,23 +548,20 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			}
 			updatePackage.imbuements = imbuements;
 
-			MonsterParts.updateItem(
+			MonsterParts.log(false, 'Perception Item updated | ', {
+				imbuements,
+				updatePackage,
+				itemSheet,
+				selectedOption,
+			});
+
+			return await MonsterParts.updateItem(
 				initItemSheet,
 				updatePackage.refinement,
 				updatePackage.imbuements,
-				{}
+				{ system: updatePackage.system, flags: updatePackage.flags }
 			);
-
-			MonsterParts.log(false, 'Perception Item updated | ', {
-				imbuements,
-			});
-			event.stopPropagation();
 		}
-
-		MonsterParts.log(false, '.monster-parts-refinement-property changed | ', {
-			itemSheet,
-			selectedOption,
-		});
 		event.stopPropagation();
 	});
 

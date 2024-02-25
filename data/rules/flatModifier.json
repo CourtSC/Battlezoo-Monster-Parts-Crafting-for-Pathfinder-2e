@@ -1,6 +1,7 @@
 {
 	"key": "FlatModifier",
 	"type": "item",
+	"label": "Monster Parts Flat Modifier",
 	"value": {
 		"brackets": [
 			{
