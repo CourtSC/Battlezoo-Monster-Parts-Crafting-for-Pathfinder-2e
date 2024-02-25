@@ -44,7 +44,7 @@
                                 data-actor-id="{{actorID}}"
                                 data-imbuement-id="{{id}}"
                                 data-item-id="{{itemID}}">
-                            <option value="" selected="selected" disabled hidden>{{flags.refinement.refinementType}}</option>
+                            <option value="" selected="selected" disabled hidden>{{flags.refinement.refinementProperties.refinementName}}</option>
                             {{#each imbuementData.equipment }}
                                 <option value="{{@key}}">{{@key}}</option>
                             {{/each}}
@@ -59,7 +59,7 @@
                                     data-actor-id="{{actorID}}"
                                     data-imbuement-id="{{id}}"
                                     data-item-id="{{itemID}}">
-                                <option value="" selected="selected" disabled hidden>{{flags.refinement.skill}}</option>
+                                <option value="" selected="selected" disabled hidden>{{flags.refinement.refinementProperties.refinementSkill}}</option>
                                 {{#each skillOptions }}
                                     <option value="{{@key}}">{{@key}}</option>
                                 {{/each}}
@@ -157,7 +157,7 @@
                                             data-imbuement-id="{{id}}"
                                             data-item-id="{{itemID}}">
                                         <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
-                                        {{#with (lookup ../skillOptions ../flags.refinement.skill)}}
+                                        {{#with (lookup ../skillOptions ../flags.refinement.refinementProperties.refinementSkill)}}
                                             <option value={{ability}}>{{ability}}
                                             </option>
                                         {{/with}}
