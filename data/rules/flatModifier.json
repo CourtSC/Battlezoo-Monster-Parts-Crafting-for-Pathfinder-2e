@@ -1,0 +1,24 @@
+{
+	"key": "FlatModifier",
+	"type": "item",
+	"label": "Monster Parts Flat Modifier",
+	"value": {
+		"brackets": [
+			{
+				"start": 3,
+				"end": 8,
+				"value": 1
+			},
+			{
+				"start": 9,
+				"end": 16,
+				"value": 2
+			},
+			{
+				"start": 17,
+				"value": 3
+			}
+		],
+		"field": "item|system.level.value"
+	}
+}

@@ -1,0 +1,50 @@
+{
+	"acrobatics": {
+		"ability": "dexterity"
+	},
+	"arcana": {
+		"ability": "intelligence"
+	},
+	"athletics": {
+		"ability": "strength"
+	},
+	"crafting": {
+		"ability": "intelligence"
+	},
+	"deception": {
+		"ability": "charisma"
+	},
+	"diplomacy": {
+		"ability": "charisma"
+	},
+	"intimidation": {
+		"ability": "charisma"
+	},
+	"medicine": {
+		"ability": "wisdom"
+	},
+	"nature": {
+		"ability": "wisdom"
+	},
+	"occultism": {
+		"ability": "intelligence"
+	},
+	"performance": {
+		"ability": "charisma"
+	},
+	"religion": {
+		"ability": "wisdom"
+	},
+	"society": {
+		"ability": "intelligence"
+	},
+	"stealth": {
+		"ability": "dexterity"
+	},
+	"survival": {
+		"ability": "wisdom"
+	},
+	"thievery": {
+		"ability": "dexterity"
+	}
+}

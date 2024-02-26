@@ -1,47 +1,28 @@
-.add-imbuement {
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    gap: 6px;
-        row-gap: 6px;
-        column-gap: 6px;
-    justify-content: flex-end;
-}
-
-.imbuement-form-group {
-    margin-bottom: 6px;
-}
-
-.imbuement-fieldset-controls {
-    padding-top: 6px;
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.edit-controls {
-    display: flex;
-    justify-content: flex-end;
-    gap: 3px;
-}
-
-.imbuement-configuration {
-    padding: 3px;
-    margin-top: 0;
-    gap: 3px;
-}
-
 .imbuement-title {
+    display: flex;
     text-transform: capitalize;
     justify-content: flex-start;
+    flex-direction: row;
 }
 
 .window-title {
     text-transform: capitalize;
 }
 
-.investment-value-controls {
-    align-items: center;
-    max-width: fit-content;
+.monster-parts-property {
+    text-transform: capitalize;
+}
+
+.monster-parts-skill {
+    text-transform: capitalize;
+}
+
+.monster-parts-refinement-property {
+    text-transform: capitalize;
+}
+
+.monster-parts-path {
+    text-transform: capitalize;
 }
 
 .gold-value-input {
@@ -61,14 +42,65 @@
     max-height: fit-content;
 }
 
-.imbuement-data {
-    max-width: 50%;
-    max-height: fit-content;
+fieldset.refinement {
+    display: flex;
+    justify-content: space-between;
+}
+
+fieldset.imbuement {
+    display: flex;
+    justify-content: space-between;
+}
+
+.monster-parts-column-left {
+    display: flex;
+    width: 50%;
+    justify-content: flex-start;
+    flex-direction: column;
+    padding: 0 0.5em 0.25em;
+}
+
+.monster-parts-column-right {
+    display: flex;
+    width: 50%;
+    justify-content: flex-start;
+    flex-direction: column;
+    border-left: 2px groove rgb(192, 192, 192);
+    padding: 0 0.5em 0.25em;
+}
+
+.monster-parts-data > * {
+    display: flex;
+    flex-direction: row;
     align-items: center;
 }
 
-.refinement-data {
-    max-width: 50%;
-    max-height: fit-content;
+.value-controls {
+    display: flex;
     align-items: center;
+    white-space: nowrap;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.data-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 3px 0;
+    align-items: center;
+}
+
+.data-group-label {
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.data-group-value {
+    float: right;
+    width: 100px;
+}
+
+.data-group > select {
+    width: 100px;
 }
