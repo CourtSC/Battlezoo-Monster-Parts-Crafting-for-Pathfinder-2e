@@ -12,6 +12,7 @@ class MonsterParts {
 	static TEMPLATES = {
 		WeaponImbuedPropertiesSheet: `modules/${this.ID}/templates/weapon-imbued-properties-sheet.hbs`,
 		ImbuedPropertiesSheet: `modules/${this.ID}/templates/imbued-properties-sheet.hbs`,
+		MonsterPartsBody: `modules/${this.ID}/templates/monster-parts-body.hbs`,
 		MonsterPartsTab: `modules/${this.ID}/templates/monster-parts-tab.hbs`,
 	};
 
@@ -37,10 +38,10 @@ class MonsterParts {
 	}
 
 	static async renderMonsterPartsTab(html, itemSheet) {
-		const flags = itemSheet.flags[this.ID];
+		const flags = itemSheet.object.flags[this.ID];
 		const itemSheetTabs = html.find('[class="tabs"]');
 		const monsterPartsBody = html.find('[class="sheet-body"]');
-		const itemImbuements = await this.getImbuements(itemSheet);
+		const itemImbuements = await this.getImbuements(itemSheet.object);
 		const imbuementData = await foundry.utils.fetchJsonWithTimeout(
 			MonsterParts.DATA.IMBUEMENTDATA
 		);
@@ -50,20 +51,22 @@ class MonsterParts {
 		);
 
 		// Set the itemType booleans
-		const isWeapon = itemSheet.type === 'weapon';
-		const isEquipment = itemSheet.type === 'equipment';
+		const isWeapon = itemSheet.object.type === 'weapon';
+		const isEquipment = itemSheet.object.type === 'equipment';
 		const isSkillItem =
-			this.getMonsterPartsFlags(itemSheet)[this.FLAGS.REFINEMENT]
+			this.getMonsterPartsFlags(itemSheet.object)[this.FLAGS.REFINEMENT]
 				.refinementProperties.refinementType === 'skillItem';
+		const monsterPartsTab = await renderTemplate(
+			this.TEMPLATES.MonsterPartsTab,
+			{}
+		);
 
 		// Inject Imbuements tab.
-		itemSheetTabs.append(
-			`<a class="list-row" data-tab="monster-parts">Monster Parts</a>`
-		);
+		itemSheetTabs.append(monsterPartsTab);
 
 		// Render and inject the sheet Body.
 		const renderedTemplate = await renderTemplate(
-			MonsterParts.TEMPLATES.MonsterPartsTab,
+			MonsterParts.TEMPLATES.MonsterPartsBody,
 			{
 				imbuements: itemImbuements,
 				itemSheet,
@@ -86,7 +89,23 @@ class MonsterParts {
 			skillOptions,
 		});
 
-		return monsterPartsBody.append(renderedTemplate);
+		monsterPartsBody.append(renderedTemplate);
+
+		// Bind the current tab.
+		function customCallback(event, tabs, active) {
+			this._onChangeTab(event, tabs, active);
+			tabs._activeCustom = active;
+		}
+
+		if (itemSheet._tabs[0].callback !== itemSheet._tabs[0]._customCallback) {
+			// Bind `customCallback` with `this` being the app instance.
+			const newCallback = customCallback.bind(itemSheet);
+			itemSheet._tabs[0].callback = newCallback;
+			itemSheet._tabs[0]._customCallback = newCallback;
+		}
+
+		// Set active tab to Monster Parts
+		itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
 	}
 
 	static async fetchJsonWithTimeout(path) {
@@ -483,29 +502,11 @@ Hooks.on('updateActor', (characterSheet) => {
 });
 
 Hooks.on('renderItemSheet', async (itemSheet, html) => {
-	const initItemSheet = await MonsterParts.checkForInit(itemSheet.object);
+	await MonsterParts.checkForInit(itemSheet.object);
 	const itemType = itemSheet.object.type;
 	const itemID = itemSheet.object._id;
 	const actorID = itemSheet.object.parent._id;
-	const imbuements = MonsterParts.getImbuements(itemSheet.object);
-
-	await MonsterParts.renderMonsterPartsTab(html, itemSheet.object);
-
-	// Bind the current tab.
-	function customCallback(event, tabs, active) {
-		this._onChangeTab(event, tabs, active);
-		tabs._activeCustom = active;
-	}
-
-	if (itemSheet._tabs[0].callback !== itemSheet._tabs[0]._customCallback) {
-		// Bind `customCallback` with `this` being the app instance.
-		const newCallback = customCallback.bind(itemSheet);
-		itemSheet._tabs[0].callback = newCallback;
-		itemSheet._tabs[0]._customCallback = newCallback;
-	}
-
-	// Set active tab to Monster Parts
-	itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
+	await MonsterParts.renderMonsterPartsTab(html, itemSheet);
 
 	MonsterParts.log(false, 'renderItemSheet', ' | ', {
 		itemSheet,
@@ -513,11 +514,17 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		itemType,
 		itemID,
 		actorID,
-		imbuements,
+	});
+
+	html.on('click', '.list-row', (event) => {
+		MonsterParts.log(false, 'Tab Clicked | ', {
+			event,
+		});
 	});
 
 	// Change the Refinement Path for an Equipment item
 	html.on('change', '.monster-parts-refinement-property', async (event) => {
+		const imbuements = MonsterParts.getImbuements(itemSheet.object);
 		const selectedOption =
 			event.currentTarget.selectedOptions[0].attributes[0].value;
 		const updatePackage = {
@@ -526,6 +533,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		};
 
 		if (selectedOption === 'skill') {
+			MonsterParts.log(false, 'Selected Option | ', { selectedOption });
 			updatePackage.refinement = {
 				refinementProperties: {
 					refinementType: 'skillItem',
@@ -536,8 +544,8 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			for (let imbuementID in imbuements) {
 				imbuements[imbuementID].name = 'New Imbuement';
 				imbuements[imbuementID].imbuedProperty = '';
-				updatePackage.imbuements = imbuements;
 			}
+			updatePackage.imbuements = imbuements;
 
 			MonsterParts.log(false, 'Skill Item updated | ', {
 				imbuements,
@@ -553,6 +561,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 				{ system: updatePackage.system, flags: updatePackage.flags }
 			);
 		} else {
+			MonsterParts.log(false, 'Selected Option | ', { selectedOption });
 			updatePackage.refinement = {
 				refinementProperties: {
 					refinementType: 'perceptionItem',
@@ -576,7 +585,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 				selectedOption,
 			});
 
-			itemSheet.object = await MonsterParts.updateItem(
+			await MonsterParts.updateItem(
 				itemSheet.object,
 				updatePackage.refinement,
 				updatePackage.imbuements,
@@ -588,11 +597,12 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Change the skill on a skill item.
 	html.on('change', '.monster-parts-skill', async (event) => {
+		const imbuements = MonsterParts.getImbuements(itemSheet.object);
 		const skill = event.currentTarget.selectedOptions[0].attributes[0].value;
 
 		for (let imbuementID in imbuements) {
 			imbuements[imbuementID].name = 'New Imbuement';
-			imbuements[(imbuementID.imbuedProperty = '')];
+			imbuements[imbuementID].imbuedProperty = '';
 		}
 
 		MonsterParts.updateItem(
@@ -617,6 +627,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Change the Imbuement Property
 	html.on('change', '.monster-parts-property', async (event) => {
+		const imbuements = MonsterParts.getImbuements(itemSheet.object);
 		const currentTarget = event.currentTarget;
 		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
 		const imbuementID = currentTarget.getAttribute('data-imbuement-id');
@@ -642,6 +653,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Change the Imbuement Path
 	html.on('change', '.monster-parts-path', async (event) => {
+		const imbuements = MonsterParts.getImbuements(itemSheet.object);
 		const currentTarget = event.currentTarget;
 		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
 		const imbuementID = currentTarget.getAttribute('data-imbuement-id');
@@ -667,6 +679,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Click on + button
 	html.on('click', '.add-gold-button', (event) => {
+		const imbuements = MonsterParts.getImbuements(itemSheet.object);
 		const clickedElement = event.currentTarget;
 		const action = clickedElement.dataset.action;
 		const changeValue = Number(clickedElement.previousElementSibling.value);
@@ -738,6 +751,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Click on - button
 	html.on('click', '.subtract-gold-button', (event) => {
+		const imbuements = MonsterParts.getImbuements(itemSheet.object);
 		const clickedElement = event.currentTarget;
 		const action = clickedElement.dataset.action;
 		const changeValue = Number(
