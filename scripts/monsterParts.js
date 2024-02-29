@@ -1,5 +1,5 @@
 class MonsterParts {
-	static ID = 'Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e';
+	static ID = 'monster-parts-crafting';
 
 	static FLAGS = {
 		IMBUEMENTS: 'imbuements',
@@ -516,12 +516,6 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		actorID,
 	});
 
-	html.on('click', '.list-row', (event) => {
-		MonsterParts.log(false, 'Tab Clicked | ', {
-			event,
-		});
-	});
-
 	// Change the Refinement Path for an Equipment item
 	html.on('change', '.monster-parts-refinement-property', async (event) => {
 		const imbuements = MonsterParts.getImbuements(itemSheet.object);
@@ -573,7 +567,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			// There should only ever be 1 imbuement on an equipment item
 			for (let imbuementID in imbuements) {
 				// Sensory is the only Perception Item imbuement option
-				imbuements[imbuementID].imbuedProperty = 'sensory';
+				imbuements[imbuementID].imbuedProperty = 'Sensory';
 				imbuements[imbuementID].name = 'Sensory';
 			}
 			updatePackage.imbuements = imbuements;

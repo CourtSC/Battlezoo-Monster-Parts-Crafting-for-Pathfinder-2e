@@ -127,7 +127,7 @@
                                         data-item-id="{{itemID}}">
                                     <option value="" selected="selected" disabled hidden>{{imbuedProperty}}</option>
                                     {{#each ../imbuementData.weapon.properties }}
-                                        <option value="{{@key}}">{{name}}</option>
+                                        <option value="{{name}}">{{name}}</option>
                                     {{/each}}
                                 </select>
                             </div>
@@ -141,7 +141,7 @@
                                         data-item-id="{{itemID}}">
                                     <option value="" selected="selected" disabled hidden>{{imbuedPath}}</option>
                                     {{#each ../imbuementData.weapon.paths }}
-                                        <option value="{{@key}}">{{this}}</option>
+                                        <option value="{{this}}">{{this}}</option>
                                     {{/each}}
                                 </select>
                             </div>
