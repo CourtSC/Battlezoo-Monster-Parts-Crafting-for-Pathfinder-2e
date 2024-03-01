@@ -1,0 +1,31 @@
+{
+	"key": "DamageDice",
+	"selector": "{item|_id}-damage",
+	"value": {
+		"brackets": [
+			{
+				"end": 5,
+				"value": {
+					"diceNumber": 0,
+					"dieSize": "d4"
+				}
+			},
+			{
+				"start": 6,
+				"end": 7,
+				"value": {
+					"diceNumber": 1,
+					"dieSize": "d4"
+				}
+			},
+			{
+				"start": 8,
+				"end": 17,
+				"value": {
+					"diceNumber": 1,
+					"dieSize": "d8"
+				}
+			}
+		]
+	}
+}

@@ -25,6 +25,11 @@ class MonsterParts {
 
 	static RULES = {
 		FLATMODIFIER: `${MonsterParts.DATA.RULES}/flatModifier.json`,
+		MIGHTDAMAGEDICE: `${MonsterParts.DATA.RULES}/mightDamageDice.json`,
+		MIGHTFLATMODIFIER: `${MonsterParts.DATA.RULES}/mightFlatModifier.json`,
+		MIGHTNOTE: `${MonsterParts.DATA.RULES}/mightResistanceNote.json`,
+		MIGHTPERSISTENT: `${MonsterParts.DATA.RULES}/mightPersistentDamage.json`,
+		MIGHTWEAKNESSNOTE: `${MonsterParts.DATA.RULES}/mightWeaknessNote.json`,
 	};
 
 	static log(force, ...args) {
@@ -192,6 +197,9 @@ class MonsterParts {
 						actorID,
 						imbuedValue: 0,
 						render: false,
+						diceNumber: 0,
+						dieSize: '',
+						imbuementLevel: 0,
 					};
 				}
 				this.log(false, 'Weapon/Armor Imbuements Initialized | ', {
@@ -212,6 +220,7 @@ class MonsterParts {
 						actorID,
 						imbuedValue: 0,
 						render: false,
+						imbuementLevel: 0,
 					},
 				};
 
@@ -647,6 +656,11 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Change the Imbuement Path
 	html.on('change', '.monster-parts-path', async (event) => {
+		const updatePackage = {
+			refinementData: {},
+			system: {},
+			flags: {},
+		};
 		const imbuements = MonsterParts.getImbuements(itemSheet.object);
 		const currentTarget = event.currentTarget;
 		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
@@ -656,10 +670,92 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		].name = `${imbuements[imbuementID].imbuedProperty} ${selectedOption}`;
 		imbuements[imbuementID].imbuedPath = selectedOption;
 
-		MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
-			system: {},
-			flags: {},
-		});
+		switch (selectedOption) {
+			case 'Might':
+				const damageDice = await MonsterParts.fetchJsonWithTimeout(
+					MonsterParts.RULES.MIGHTDAMAGEDICE
+				);
+				damageDice.label = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name}`;
+				damageDice.damageType =
+					`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuedProperty}`.toLowerCase();
+				damageDice.value.field = `item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel`;
+				damageDice.predicate = [
+					{
+						gte: [
+							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
+							6,
+						],
+					},
+				];
+
+				const flatModifier = await MonsterParts.fetchJsonWithTimeout(
+					MonsterParts.RULES.MIGHTFLATMODIFIER
+				);
+				flatModifier.label = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name}`;
+				flatModifier.damageType =
+					`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuedProperty}`.toLowerCase();
+				flatModifier.value.field = `item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel`;
+				flatModifier.predicate = [
+					{
+						gte: [
+							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
+							4,
+						],
+					},
+					{
+						lte: [
+							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
+							5,
+						],
+					},
+				];
+
+				const resistanceNote = await MonsterParts.fetchJsonWithTimeout(
+					MonsterParts.RULES.MIGHTNOTE
+				);
+				resistanceNote.title = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name}`;
+				resistanceNote.predicate = [
+					{
+						gte: [
+							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
+							12,
+						],
+					},
+				];
+				resistanceNote.text = `The ${imbuements[imbuementID].imbuedProperty} damage dealt by this imbued property (including persistent ${imbuements[imbuementID].imbuedProperty} damage) ignores resistances`;
+
+				const persistent = await MonsterParts.fetchJsonWithTimeout(
+					MonsterParts.RULES.MIGHTPERSISTENT
+				);
+				persistent.label = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name} Critical`;
+				persistent.damageType =
+					`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuedProperty}`.toLowerCase();
+				persistent.value.field = `item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel`;
+
+				const weaknessNote = await MonsterParts.fetchJsonWithTimeout(
+					MonsterParts.RULES.MIGHTNOTE
+				);
+				weaknessNote.title = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name}`;
+				weaknessNote.predicate = [
+					{
+						gte: [
+							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
+							20,
+						],
+					},
+				];
+				weaknessNote.text = `On a successful Strike with this weapon, before applying ${imbuements[imbuementID].imbuedProperty} damage, the target gains weakness 1 to ${imbuements[imbuementID].imbuedProperty} until the beginning of your next turn.`;
+		}
+
+		MonsterParts.updateItem(
+			itemSheet.object,
+			updatePackage.refinementData,
+			imbuements,
+			{
+				system: updatePackage.system,
+				flags: updatePackage.flags,
+			}
+		);
 
 		MonsterParts.log(false, '.monster-parts-property changed | ', {
 			event,

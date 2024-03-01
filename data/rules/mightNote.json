@@ -1,0 +1,4 @@
+{
+	"key": "Note",
+	"selector": "{item|_id}-damage"
+}
