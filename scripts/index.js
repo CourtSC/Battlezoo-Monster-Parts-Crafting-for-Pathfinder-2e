@@ -15,7 +15,6 @@ Hooks.on('updateActor', (characterSheet) => {
 	for (let idx in characterSheet.items._source) {
 		const item = characterSheet.items._source[idx];
 		const itemType = item.type;
-		console.log(item);
 
 		if (item.flags.hasOwnProperty(MonsterParts.ID)) {
 			if (item.flags[MonsterParts.ID][MonsterParts.FLAGS.REFINEMENT].refined) {

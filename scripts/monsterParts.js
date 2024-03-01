@@ -49,11 +49,11 @@ export class MonsterParts {
 		const monsterPartsBody = html.find('[class="sheet-body"]');
 		const itemImbuements = await Imbuements.getImbuements(itemSheet.object);
 		const imbuementData = await foundry.utils.fetchJsonWithTimeout(
-			MonsterParts.DATA.IMBUEMENTDATA
+			this.DATA.IMBUEMENTDATA
 		);
 
 		const skillOptions = await foundry.utils.fetchJsonWithTimeout(
-			MonsterParts.DATA.SKILLDATA
+			this.DATA.SKILLDATA
 		);
 
 		// Set the itemType booleans
@@ -72,7 +72,7 @@ export class MonsterParts {
 
 		// Render and inject the sheet Body.
 		const renderedTemplate = await renderTemplate(
-			MonsterParts.TEMPLATES.MonsterPartsBody,
+			this.TEMPLATES.MonsterPartsBody,
 			{
 				imbuements: itemImbuements,
 				itemSheet,
@@ -85,7 +85,7 @@ export class MonsterParts {
 			}
 		);
 
-		MonsterParts.log(false, 'renderMonsterPartsTab', ' | ', {
+		this.log(false, 'renderMonsterPartsTab', ' | ', {
 			itemImbuements,
 			itemSheetTabs,
 			monsterPartsBody,
@@ -124,17 +124,15 @@ export class MonsterParts {
 
 	static checkForInit(itemSheet) {
 		// Check for itemInitialized key and init item if key doesn't exist or value is false
-		if (!itemSheet.flags.hasOwnProperty(MonsterParts.ID)) {
+		if (!itemSheet.flags.hasOwnProperty(this.ID)) {
 			// scope does not exist
-			return MonsterParts.initializeItem(itemSheet);
+			return this.initializeItem(itemSheet);
 		} else if (
-			!MonsterParts.getMonsterPartsFlags(itemSheet).hasOwnProperty(
-				MonsterParts.FLAGS.INIT
-			) ||
-			!MonsterParts.getMonsterPartsFlags(itemSheet)[MonsterParts.FLAGS.INIT]
+			!this.getMonsterPartsFlags(itemSheet).hasOwnProperty(this.FLAGS.INIT) ||
+			!this.getMonsterPartsFlags(itemSheet)[this.FLAGS.INIT]
 		) {
 			// property does not exist or item has not been initialized
-			return MonsterParts.initializeItem(itemSheet);
+			return this.initializeItem(itemSheet);
 		} else {
 			return itemSheet;
 		}
@@ -181,7 +179,7 @@ export class MonsterParts {
 
 	static async updateItemLevel(itemSheet, itemValue) {
 		const levelData = await this.fetchJsonWithTimeout(
-			MonsterParts.DATA.REFINEMENTLEVELDATA
+			this.DATA.REFINEMENTLEVELDATA
 		);
 		const itemType = itemSheet.type;
 		const actorID = itemSheet.parent._id;
@@ -200,7 +198,7 @@ export class MonsterParts {
 
 		const actorLevel = game.actors.get(actorID).level;
 
-		MonsterParts.log(false, 'updateItemLevel | ', {
+		this.log(false, 'updateItemLevel | ', {
 			levelData,
 			itemLevelData: levelData[itemType],
 			itemLevel,
@@ -258,7 +256,7 @@ export class MonsterParts {
 
 				if (!ruleApplied) {
 					const flatModifier = await this.fetchJsonWithTimeout(
-						MonsterParts.RULES.FLATMODIFIER
+						this.RULES.FLATMODIFIER
 					);
 					// Rules UI stores selectors as arrays
 					flatModifier.selector = `{item|flags.${this.ID}[${this.FLAGS.REFINEMENT}].refinementProperties.refinementSkill}`;

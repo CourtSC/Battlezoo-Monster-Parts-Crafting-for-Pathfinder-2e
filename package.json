@@ -1,6 +1,6 @@
 {
 	"name": "monster-parts-crafting",
-	"version": "1.0.0",
+	"version": "1.4.1",
 	"description": "A Foundry VTT plugin to support the Monster Parts Crafting system from Battlezoo Bestiary.",
 	"main": "index.js",
 	"type": "module",
