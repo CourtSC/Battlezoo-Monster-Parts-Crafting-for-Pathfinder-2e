@@ -24,7 +24,11 @@
 			}
 		]
 	},
-	"scripts": ["scripts/monsterParts.js"],
+	"esmodules": [
+		"scripts/monsterParts.js",
+		"scripts/imbuements.js",
+		"scripts/index.js"
+	],
 	"languages": [
 		{
 			"lang": "en",
