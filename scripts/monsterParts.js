@@ -1,5 +1,3 @@
-import { Imbuements } from './imbuements';
-
 export class MonsterParts {
 	static ID = 'monster-parts-crafting';
 

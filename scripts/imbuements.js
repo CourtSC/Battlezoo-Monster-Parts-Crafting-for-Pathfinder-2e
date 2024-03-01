@@ -1,5 +1,3 @@
-import { MonsterParts } from './monsterParts';
-
 export class Imbuements {
 	static initializeImbuements(itemSheet) {
 		const itemType = itemSheet.type;

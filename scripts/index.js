@@ -1,5 +1,4 @@
 import { MonsterParts } from './monsterParts';
-import { Imbuements } from './imbuements';
 
 Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
 	registerPackageDebugFlag(MonsterParts.ID);
