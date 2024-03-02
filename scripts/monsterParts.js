@@ -1,67 +1,30 @@
+import { Imbuements } from './Imbuements.js';
+import * as CONSTANTS from './constants.js';
+import { logger } from './logger.js';
+import * as helpers from './helpers.js';
+
 export class MonsterParts {
-	static ID = 'monster-parts-crafting';
-
-	static FLAGS = {
-		IMBUEMENTS: 'imbuements',
-		REFINEMENT: 'refinement',
-		INIT: 'itemInitialized',
-		RULEAPPLIED: 'ruleApplied',
-		REFINED: 'refined',
-	};
-
-	static TEMPLATES = {
-		WeaponImbuedPropertiesSheet: `modules/${this.ID}/templates/weapon-imbued-properties-sheet.hbs`,
-		ImbuedPropertiesSheet: `modules/${this.ID}/templates/imbued-properties-sheet.hbs`,
-		MonsterPartsBody: `modules/${this.ID}/templates/monster-parts-body.hbs`,
-		MonsterPartsTab: `modules/${this.ID}/templates/monster-parts-tab.hbs`,
-	};
-
-	static DATA = {
-		IMBUEMENTDATA: `modules/${this.ID}/data/imbuements.json`,
-		REFINEMENTLEVELDATA: `modules/${this.ID}/data/refinementLevels.json`,
-		SKILLDATA: `modules/${this.ID}/data/skills.json`,
-		RULES: `modules/${this.ID}/data/rules`,
-	};
-
-	static RULES = {
-		FLATMODIFIER: `${this.DATA.RULES}/flatModifier.json`,
-		MIGHTDAMAGEDICE: `${this.DATA.RULES}/mightDamageDice.json`,
-		MIGHTFLATMODIFIER: `${this.DATA.RULES}/mightFlatModifier.json`,
-		MIGHTNOTE: `${this.DATA.RULES}/mightNote.json`,
-		MIGHTPERSISTENT: `${this.DATA.RULES}/mightPersistentDamage.json`,
-	};
-
-	static log(force, ...args) {
-		const shouldLog =
-			force ||
-			game.modules.get('_dev-mode')?.api?.getPackageDebugValue(this.ID);
-
-		if (shouldLog) {
-			console.log(this.ID, '|', ...args);
-		}
-	}
-
 	static async renderMonsterPartsTab(html, itemSheet) {
-		const flags = itemSheet.object.flags[this.ID];
+		const flags = itemSheet.object.flags[CONSTANTS.ID];
 		const itemSheetTabs = html.find('[class="tabs"]');
 		const monsterPartsBody = html.find('[class="sheet-body"]');
-		const itemImbuements = await Imbuements.getImbuements(itemSheet.object);
-		const imbuementData = await foundry.utils.fetchJsonWithTimeout(
-			this.DATA.IMBUEMENTDATA
+		const itemImbuements = await helpers.getImbuements(itemSheet.object);
+		const imbuementData = await helpers.fetchJsonWithTimeout(
+			CONSTANTS.DATA.IMBUEMENTDATA
 		);
 
-		const skillOptions = await foundry.utils.fetchJsonWithTimeout(
-			this.DATA.SKILLDATA
+		const skillOptions = await helpers.fetchJsonWithTimeout(
+			CONSTANTS.DATA.SKILLDATA
 		);
 
 		// Set the itemType booleans
 		const isWeapon = itemSheet.object.type === 'weapon';
 		const isEquipment = itemSheet.object.type === 'equipment';
 		const isSkillItem =
-			this.getMonsterPartsFlags(itemSheet.object)[this.FLAGS.REFINEMENT]
-				.refinementProperties.refinementType === 'skillItem';
+			helpers.getRefinement(itemSheet.object).refinementProperties
+				.refinementType === 'skillItem';
 		const monsterPartsTab = await renderTemplate(
-			this.TEMPLATES.MonsterPartsTab,
+			CONSTANTS.TEMPLATES.MonsterPartsTab,
 			{}
 		);
 
@@ -70,7 +33,7 @@ export class MonsterParts {
 
 		// Render and inject the sheet Body.
 		const renderedTemplate = await renderTemplate(
-			this.TEMPLATES.MonsterPartsBody,
+			CONSTANTS.TEMPLATES.MonsterPartsBody,
 			{
 				imbuements: itemImbuements,
 				itemSheet,
@@ -83,7 +46,7 @@ export class MonsterParts {
 			}
 		);
 
-		this.log(false, 'renderMonsterPartsTab', ' | ', {
+		logger(false, 'renderMonsterPartsTab', ' | ', {
 			itemImbuements,
 			itemSheetTabs,
 			monsterPartsBody,
@@ -112,22 +75,16 @@ export class MonsterParts {
 		itemSheet._tabs[0].activate(itemSheet._tabs[0]._activeCustom);
 	}
 
-	static async fetchJsonWithTimeout(path) {
-		return await foundry.utils.fetchJsonWithTimeout(path);
-	}
-
-	static getMonsterPartsFlags(itemSheet) {
-		return itemSheet.flags[this.ID];
-	}
-
 	static checkForInit(itemSheet) {
 		// Check for itemInitialized key and init item if key doesn't exist or value is false
-		if (!itemSheet.flags.hasOwnProperty(this.ID)) {
+		if (!itemSheet.flags.hasOwnProperty(CONSTANTS.ID)) {
 			// scope does not exist
 			return this.initializeItem(itemSheet);
 		} else if (
-			!this.getMonsterPartsFlags(itemSheet).hasOwnProperty(this.FLAGS.INIT) ||
-			!this.getMonsterPartsFlags(itemSheet)[this.FLAGS.INIT]
+			!helpers
+				.getMonsterPartsFlags(itemSheet)
+				.hasOwnProperty(CONSTANTS.FLAGS.INIT) ||
+			!helpers.getMonsterPartsFlags(itemSheet)[CONSTANTS.FLAGS.INIT]
 		) {
 			// property does not exist or item has not been initialized
 			return this.initializeItem(itemSheet);
@@ -141,9 +98,9 @@ export class MonsterParts {
 		const updateData = {
 			system: {},
 			flags: {
-				[this.FLAGS.INIT]: true,
-				[this.FLAGS.RULEAPPLIED]: false,
-				[this.FLAGS.REFINED]: false,
+				[CONSTANTS.FLAGS.INIT]: true,
+				[CONSTANTS.FLAGS.RULEAPPLIED]: false,
+				[CONSTANTS.FLAGS.REFINED]: false,
 			},
 		};
 		const refinementData = {
@@ -155,15 +112,15 @@ export class MonsterParts {
 		};
 
 		if (itemSheet.type === 'equipment') {
-			const flatModifier = await this.fetchJsonWithTimeout(
-				this.RULES.FLATMODIFIER
+			const flatModifier = await helpers.fetchJsonWithTimeout(
+				CONSTANTS.RULES.FLATMODIFIER
 			);
-			flatModifier.selector = `{item|flags.${this.ID}.${this.FLAGS.REFINEMENT}.refinementProperties.refinementSkill}`;
+			flatModifier.selector = `{item|flags.${CONSTANTS.ID}.${CONSTANTS.FLAGS.REFINEMENT}.refinementProperties.refinementSkill}`;
 
 			updateData.system.rules = [flatModifier];
-			updateData.flags[this.FLAGS.RULEAPPLIED] = true;
+			updateData.flags[CONSTANTS.FLAGS.RULEAPPLIED] = true;
 		}
-		this.log(false, 'Item initialized | ', {
+		logger(false, 'Item initialized | ', {
 			itemSheet,
 			imbuements,
 			refinementData,
@@ -176,8 +133,8 @@ export class MonsterParts {
 	}
 
 	static async updateItemLevel(itemSheet, itemValue) {
-		const levelData = await this.fetchJsonWithTimeout(
-			this.DATA.REFINEMENTLEVELDATA
+		const levelData = await helpers.fetchJsonWithTimeout(
+			CONSTANTS.DATA.REFINEMENTLEVELDATA
 		);
 		const itemType = itemSheet.type;
 		const actorID = itemSheet.parent._id;
@@ -196,7 +153,7 @@ export class MonsterParts {
 
 		const actorLevel = game.actors.get(actorID).level;
 
-		this.log(false, 'updateItemLevel | ', {
+		logger(false, 'updateItemLevel | ', {
 			levelData,
 			itemLevelData: levelData[itemType],
 			itemLevel,
@@ -243,27 +200,27 @@ export class MonsterParts {
 				break;
 			case 'equipment':
 				const ruleApplied =
-					this.getMonsterPartsFlags(itemSheet)[this.FLAGS.RULEAPPLIED];
+					helpers.getMonsterPartsFlags(itemSheet)[CONSTANTS.FLAGS.RULEAPPLIED];
 				const refined =
-					this.getMonsterPartsFlags(itemSheet)[this.FLAGS.REFINED];
+					helpers.getMonsterPartsFlags(itemSheet)[CONSTANTS.FLAGS.REFINED];
 
 				if (!refined) {
-					updatePackage.flags[this.FLAGS.REFINED] = true;
+					updatePackage.flags[CONSTANTS.FLAGS.REFINED] = true;
 					updatePackage.system.traits = { value: ['magical', 'invested'] };
 				}
 
 				if (!ruleApplied) {
-					const flatModifier = await this.fetchJsonWithTimeout(
-						this.RULES.FLATMODIFIER
+					const flatModifier = await helpers.fetchJsonWithTimeout(
+						CONSTANTS.RULES.FLATMODIFIER
 					);
 					// Rules UI stores selectors as arrays
-					flatModifier.selector = `{item|flags.${this.ID}[${this.FLAGS.REFINEMENT}].refinementProperties.refinementSkill}`;
+					flatModifier.selector = `{item|flags.${CONSTANTS.ID}[${CONSTANTS.FLAGS.REFINEMENT}].refinementProperties.refinementSkill}`;
 
 					updatePackage.system.rules = [flatModifier];
 					updatePackage.system.usage = { type: 'worn', value: 'worn' };
-					updatePackage.flags[this.FLAGS.RULEAPPLIED] = true;
+					updatePackage.flags[CONSTANTS.FLAGS.RULEAPPLIED] = true;
 				}
-				this.log(false, 'Equipment Item Properties | ', {
+				logger(false, 'Equipment Item Properties | ', {
 					updatePackage,
 				});
 				break;
@@ -299,9 +256,9 @@ export class MonsterParts {
 	) {
 		// init the update packages
 		const flags = {
-			[this.ID]: {
-				[this.FLAGS.REFINEMENT]: refinementData,
-				[this.FLAGS.IMBUEMENTS]: imbuementData,
+			[CONSTANTS.ID]: {
+				[CONSTANTS.FLAGS.REFINEMENT]: refinementData,
+				[CONSTANTS.FLAGS.IMBUEMENTS]: imbuementData,
 			},
 		};
 		const system = updateData.system;
@@ -309,9 +266,9 @@ export class MonsterParts {
 		// handle additional flags data
 		if (updateData.flags) {
 			for (let key in updateData.flags) {
-				flags[this.ID][key] = updateData.flags[key];
-				this.log(false, 'Flag updated | ', {
-					[key]: flags[this.ID][key],
+				flags[CONSTANTS.ID][key] = updateData.flags[key];
+				logger(false, 'Flag updated | ', {
+					[key]: flags[CONSTANTS.ID][key],
 				});
 			}
 		}
@@ -335,7 +292,7 @@ export class MonsterParts {
 			);
 
 			// reset the render property of imbuements for cases where the item's level is reduced after an update
-			const imbuements = Imbuements.getImbuements(itemSheet);
+			const imbuements = helpers.getImbuements(itemSheet);
 			for (let imbuementID in imbuements) {
 				imbuements[imbuementID].render = false;
 			}
@@ -346,7 +303,7 @@ export class MonsterParts {
 				imbuements[imbuementIDs[i]].render = true;
 			}
 			// package updated imbuements
-			flags[this.ID][this.FLAGS.IMBUEMENTS] = imbuements;
+			flags[CONSTANTS.ID][CONSTANTS.FLAGS.IMBUEMENTS] = imbuements;
 
 			// Handle system updates passed from itemProperties
 			for (let key in itemProperties.system) {
@@ -355,7 +312,7 @@ export class MonsterParts {
 
 			// handle flag updates passed from itemProperties
 			for (let key in itemProperties.flags) {
-				flags[this.ID][key] = itemProperties.flags[key];
+				flags[CONSTANTS.ID][key] = itemProperties.flags[key];
 			}
 
 			// handle system updates passed from updateData
@@ -368,7 +325,7 @@ export class MonsterParts {
 			system.level = { value: lowerLevel };
 			// package the flags update
 			for (let key in levelData.levels[lowerLevel]) {
-				flags[this.ID][this.FLAGS.REFINEMENT][key] =
+				flags[CONSTANTS.ID][CONSTANTS.FLAGS.REFINEMENT][key] =
 					levelData.levels[lowerLevel][key];
 			}
 		}
@@ -378,7 +335,7 @@ export class MonsterParts {
 			'refinementProperties'
 		);
 		if (refinementData.refinementProperties) {
-			flags[this.ID][this.FLAGS.REFINEMENT].refinementProperties =
+			flags[CONSTANTS.ID][CONSTANTS.FLAGS.REFINEMENT].refinementProperties =
 				refinementData.refinementProperties;
 
 			if (updateData.system.rules) {
@@ -389,7 +346,7 @@ export class MonsterParts {
 			}
 		}
 
-		this.log(false, 'Updating Item | ', {
+		logger(false, 'Updating Item | ', {
 			flags,
 			system,
 			updateData,

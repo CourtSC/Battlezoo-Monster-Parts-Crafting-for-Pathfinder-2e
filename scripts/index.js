@@ -1,7 +1,11 @@
-import { MonsterParts } from './monsterParts';
+import { Imbuements } from './Imbuements.js';
+import { logger } from './logger.js';
+import { MonsterParts } from './monsterParts.js';
+import * as CONSTANTS from './constants.js';
+import * as helpers from './helpers.js';
 
 Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
-	registerPackageDebugFlag(MonsterParts.ID);
+	registerPackageDebugFlag(CONSTANTS.ID);
 });
 
 Hooks.on('createItem', async (itemSheet) => {
@@ -15,9 +19,9 @@ Hooks.on('updateActor', (characterSheet) => {
 		const item = characterSheet.items._source[idx];
 		const itemType = item.type;
 
-		if (item.flags.hasOwnProperty(MonsterParts.ID)) {
-			if (item.flags[MonsterParts.ID][MonsterParts.FLAGS.REFINEMENT].refined) {
-				MonsterParts.log(false, 'updateActor | ', {
+		if (item.flags.hasOwnProperty(CONSTANTS.ID)) {
+			if (item.flags[CONSTANTS.ID][CONSTANTS.FLAGS.REFINEMENT].refined) {
+				logger(false, 'updateActor | ', {
 					characterSheet,
 					inventory: characterSheet.items._source,
 					actorID,
@@ -45,7 +49,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	const actorID = itemSheet.object.parent._id;
 	await MonsterParts.renderMonsterPartsTab(html, itemSheet);
 
-	MonsterParts.log(false, 'renderItemSheet', ' | ', {
+	logger(false, 'renderItemSheet', ' | ', {
 		itemSheet,
 		html,
 		itemType,
@@ -55,7 +59,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Change the Refinement Path for an Equipment item
 	html.on('change', '.monster-parts-refinement-property', async (event) => {
-		const imbuements = Imbuements.getImbuements(itemSheet.object);
+		const imbuements = helpers.getImbuements(itemSheet.object);
 		const selectedOption =
 			event.currentTarget.selectedOptions[0].attributes[0].value;
 		const updatePackage = {
@@ -64,7 +68,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 		};
 
 		if (selectedOption === 'skill') {
-			MonsterParts.log(false, 'Selected Option | ', { selectedOption });
+			logger(false, 'Selected Option | ', { selectedOption });
 			updatePackage.refinement = {
 				refinementProperties: {
 					refinementType: 'skillItem',
@@ -78,7 +82,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			}
 			updatePackage.imbuements = imbuements;
 
-			MonsterParts.log(false, 'Skill Item updated | ', {
+			logger(false, 'Skill Item updated | ', {
 				imbuements,
 				updatePackage,
 				itemSheet,
@@ -92,7 +96,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 				{ system: updatePackage.system, flags: updatePackage.flags }
 			);
 		} else {
-			MonsterParts.log(false, 'Selected Option | ', { selectedOption });
+			logger(false, 'Selected Option | ', { selectedOption });
 			updatePackage.refinement = {
 				refinementProperties: {
 					refinementType: 'perceptionItem',
@@ -109,7 +113,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			}
 			updatePackage.imbuements = imbuements;
 
-			MonsterParts.log(false, 'Perception Item updated | ', {
+			logger(false, 'Perception Item updated | ', {
 				imbuements,
 				updatePackage,
 				itemSheet,
@@ -128,7 +132,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Change the skill on a skill item.
 	html.on('change', '.monster-parts-skill', async (event) => {
-		const imbuements = Imbuements.getImbuements(itemSheet.object);
+		const imbuements = helpers.getImbuements(itemSheet.object);
 		const skill = event.currentTarget.selectedOptions[0].attributes[0].value;
 
 		for (let imbuementID in imbuements) {
@@ -149,7 +153,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			{ system: {}, flags: {} }
 		);
 
-		MonsterParts.log(false, '.monster-parts-skill changed | ', {
+		logger(false, '.monster-parts-skill changed | ', {
 			skill,
 		});
 
@@ -158,7 +162,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 	// Change the Imbuement Property
 	html.on('change', '.monster-parts-property', async (event) => {
-		const imbuements = Imbuements.getImbuements(itemSheet.object);
+		const imbuements = helpers.getImbuements(itemSheet.object);
 		const currentTarget = event.currentTarget;
 		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
 		const imbuementID = currentTarget.getAttribute('data-imbuement-id');
@@ -172,7 +176,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			flags: {},
 		});
 
-		MonsterParts.log(false, '.monster-parts-property changed | ', {
+		logger(false, '.monster-parts-property changed | ', {
 			event,
 			currentTarget,
 			selectedOption,
@@ -189,97 +193,20 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			system: {},
 			flags: {},
 		};
-		const imbuements = Imbuements.getImbuements(itemSheet.object);
+		const imbuements = helpers.getImbuements(itemSheet.object);
 		const currentTarget = event.currentTarget;
 		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
 		const imbuementID = currentTarget.getAttribute('data-imbuement-id');
+
 		imbuements[
 			imbuementID
 		].name = `${imbuements[imbuementID].imbuedProperty} ${selectedOption}`;
 		imbuements[imbuementID].imbuedPath = selectedOption;
 
-		switch (selectedOption) {
-			case 'might':
-				const damageDice = await MonsterParts.fetchJsonWithTimeout(
-					MonsterParts.RULES.MIGHTDAMAGEDICE
-				);
-				damageDice.label = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name}`;
-				damageDice.damageType = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuedProperty}`;
-				damageDice.value.field = `item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel`;
-				damageDice.predicate = [
-					{
-						gte: [
-							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
-							6,
-						],
-					},
-				];
-
-				const flatModifier = await MonsterParts.fetchJsonWithTimeout(
-					MonsterParts.RULES.MIGHTFLATMODIFIER
-				);
-				flatModifier.label = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name}`;
-				flatModifier.damageType = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuedProperty}`;
-				flatModifier.value.field = `item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel`;
-				flatModifier.predicate = [
-					{
-						gte: [
-							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
-							4,
-						],
-					},
-					{
-						lte: [
-							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
-							5,
-						],
-					},
-				];
-
-				const resistanceNote = await MonsterParts.fetchJsonWithTimeout(
-					MonsterParts.RULES.MIGHTNOTE
-				);
-				resistanceNote.title = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name}`;
-				resistanceNote.predicate = [
-					{
-						gte: [
-							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
-							12,
-						],
-					},
-				];
-				resistanceNote.text = `The ${imbuements[imbuementID].imbuedProperty} damage dealt by this imbued property (including persistent ${imbuements[imbuementID].imbuedProperty} damage) ignores resistances.`;
-
-				const persistent = await MonsterParts.fetchJsonWithTimeout(
-					MonsterParts.RULES.MIGHTPERSISTENT
-				);
-				persistent.label = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name} Critical`;
-				persistent.damageType =
-					`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuedProperty}`.toLowerCase();
-				persistent.value.field = `item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel`;
-
-				const weaknessNote = await MonsterParts.fetchJsonWithTimeout(
-					MonsterParts.RULES.MIGHTNOTE
-				);
-				weaknessNote.title = `{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.name}`;
-				weaknessNote.predicate = [
-					{
-						gte: [
-							`{item|flags.${MonsterParts.ID}.imbuements.${imbuementID}.imbuementLevel}`,
-							20,
-						],
-					},
-				];
-				weaknessNote.text = `On a successful Strike with this weapon, before applying ${imbuements[imbuementID].imbuedProperty} damage, the target gains weakness 1 to ${imbuements[imbuementID].imbuedProperty} until the beginning of your next turn.`;
-
-				updatePackage.system.rules = [
-					damageDice,
-					flatModifier,
-					resistanceNote,
-					persistent,
-					weaknessNote,
-				];
-		}
+		updatePackage.system.rules = await Imbuements.applyImbuementRules(
+			imbuementID,
+			selectedOption
+		);
 
 		MonsterParts.updateItem(
 			itemSheet.object,
@@ -291,7 +218,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			}
 		);
 
-		MonsterParts.log(false, '.monster-parts-property changed | ', {
+		logger(false, '.monster-parts-property changed | ', {
 			event,
 			currentTarget,
 			selectedOption,
@@ -302,13 +229,13 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	});
 
 	// Click on + button
-	html.on('click', '.add-gold-button', (event) => {
-		const imbuements = Imbuements.getImbuements(itemSheet.object);
+	html.on('click', '.add-gold-button', async (event) => {
+		const imbuements = helpers.getImbuements(itemSheet.object);
 		const clickedElement = event.currentTarget;
 		const action = clickedElement.dataset.action;
 		const changeValue = Number(clickedElement.previousElementSibling.value);
 
-		MonsterParts.log(false, 'add-gold-button clicked | ', {
+		logger(false, 'add-gold-button clicked | ', {
 			event,
 			actorID,
 			itemID,
@@ -324,13 +251,13 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 					const currValue = itemSheet.object.system.price.value.gp;
 					const itemValue = currValue + changeValue;
 					// Update the item.
-					MonsterParts.updateItem(
+					await MonsterParts.updateItem(
 						itemSheet.object,
 						{ itemValue },
 						{},
 						{
 							system: { specific: { material: {}, runes: {} } },
-							flags: { [MonsterParts.FLAGS.REFINED]: true },
+							flags: { [CONSTANTS.FLAGS.REFINED]: true },
 						}
 					);
 					event.stopPropagation();
@@ -338,9 +265,16 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 				case 'imbue-add-gold':
 					const imbuementID = clickedElement.getAttribute('data-imbuement-id');
-					imbuements[imbuementID].imbuedValue =
-						imbuements[imbuementID].imbuedValue + changeValue;
-					MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
+
+					imbuements[imbuementID].imbuedValue += changeValue;
+
+					imbuements[imbuementID].imbuementLevel =
+						await Imbuements.updateImbuementLevel(
+							itemSheet.object,
+							imbuements[imbuementID].imbuedValue
+						);
+
+					await MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
 						system: { specific: { material: {}, runes: {} } },
 						flags: {},
 					});
@@ -349,7 +283,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			}
 		} else if (!Number.isInteger(changeValue)) {
 			// Input is not an integer.
-			MonsterParts.log(false, 'Add Gold | ', { changeValue });
+			logger(false, 'Add Gold | ', { changeValue });
 			ui.notifications.error(
 				'Cannot add decimal gold values. Please enter a whole number integer.'
 			);
@@ -374,15 +308,15 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	});
 
 	// Click on - button
-	html.on('click', '.subtract-gold-button', (event) => {
-		const imbuements = Imbuements.getImbuements(itemSheet.object);
+	html.on('click', '.subtract-gold-button', async (event) => {
+		const imbuements = helpers.getImbuements(itemSheet.object);
 		const clickedElement = event.currentTarget;
 		const action = clickedElement.dataset.action;
 		const changeValue = Number(
 			clickedElement.previousElementSibling.previousElementSibling.value
 		);
 
-		MonsterParts.log(false, 'Subtract Gold Button Clicked | ', {
+		logger(false, 'Subtract Gold Button Clicked | ', {
 			event,
 			actorID,
 			itemID,
@@ -398,25 +332,25 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 					const itemValue = currValue - changeValue;
 					// Update the item's value.
 					if (itemValue > 0) {
-						MonsterParts.updateItem(
+						await MonsterParts.updateItem(
 							itemSheet.object,
 							{ itemValue },
 							{},
 							{
 								system: { specific: { material: {}, runes: {} } },
-								flags: { [MonsterParts.FLAGS.REFINED]: true },
+								flags: { [CONSTANTS.FLAGS.REFINED]: true },
 							}
 						);
 						event.stopPropagation();
 						break;
 					} else {
-						MonsterParts.updateItem(
+						await MonsterParts.updateItem(
 							itemSheet.object,
 							{ itemValue: 0 },
 							{},
 							{
 								system: { specific: {} },
-								flags: { [MonsterParts.FLAGS.REFINED]: false },
+								flags: { [CONSTANTS.FLAGS.REFINED]: false },
 							}
 						);
 						event.stopPropagation();
@@ -425,10 +359,17 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 				case 'imbue-subtract-gold':
 					const imbuementID = clickedElement.getAttribute('data-imbuement-id');
-					imbuements[imbuementID].imbuedValue =
-						imbuements[imbuementID].imbuedValue - changeValue;
+
 					if (imbuements[imbuementID].imbuedValue - changeValue > 0) {
-						MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
+						imbuements[imbuementID].imbuedValue -= changeValue;
+
+						imbuements[imbuementID].imbuementLevel =
+							await Imbuements.updateImbuementLevel(
+								itemSheet.object,
+								imbuements[imbuementID].imbuedValue
+							);
+
+						await MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
 							system: {},
 							flags: {},
 						});
@@ -436,7 +377,13 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 						break;
 					} else {
 						imbuements[imbuementID].imbuedValue = 0;
-						MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
+						imbuements[imbuementID].imbuementLevel =
+							await Imbuements.updateImbuementLevel(
+								itemSheet.object,
+								imbuements[imbuementID].imbuedValue
+							);
+
+						await MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
 							system: {},
 							flags: {},
 						});
@@ -446,7 +393,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			}
 		} else if (!Number.isInteger(changeValue)) {
 			// Input is not an integer.
-			MonsterParts.log(false, 'Subtract Gold | ', { changeValue });
+			logger(false, 'Subtract Gold | ', { changeValue });
 			ui.notifications.error(
 				'Cannot subtract decimal gold values. Please enter a whole number integer.'
 			);

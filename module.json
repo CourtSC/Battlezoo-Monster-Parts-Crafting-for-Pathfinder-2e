@@ -25,9 +25,12 @@
 		]
 	},
 	"esmodules": [
-		"scripts/monsterParts.js",
-		"scripts/imbuements.js",
-		"scripts/index.js"
+		"scripts/MonsterParts.js",
+		"scripts/Imbuements.js",
+		"scripts/index.js",
+		"scripts/logger.js",
+		"scripts/constants.js",
+		"scripts/helpers.js"
 	],
 	"languages": [
 		{

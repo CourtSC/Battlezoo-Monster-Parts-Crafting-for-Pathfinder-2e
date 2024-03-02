@@ -1,0 +1,8 @@
+{
+	"key": "DamageDice",
+	"selector": "{item|_id}-damage",
+	"critical": true,
+	"dieSize": "d10",
+	"damageDice": 1,
+	"category": "persistent"
+}
