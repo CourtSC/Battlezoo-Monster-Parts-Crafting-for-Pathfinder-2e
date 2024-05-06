@@ -101,10 +101,31 @@ fieldset.imbuement {
     width: 100px;
 }
 
+.capitalized-data-group-value {
+    float: right;
+    width: 100px;
+    text-transform: capitalize;
+}
+
 .data-group > select {
     width: 100px;
 }
 
 .tag.tag_transparent {
     text-transform: capitalize;
+}
+
+.imbue-reset-value, .imbue-reset-properties, .refine-reset-value, .refine-reset-properties {
+    justify-content: center;
+    align-items: center;
+    max-width: 50px;
+}
+
+.imbue-reset-value,
+.imbue-reset-properties,
+.refine-reset-value,
+.refine-reset-properties > i {
+    padding: 5px;
+    justify-content: center;
+    align-items: center;
 }

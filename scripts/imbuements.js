@@ -6,7 +6,7 @@ export class Imbuements {
 	static initializeImbuements(itemSheet) {
 		const itemType = itemSheet.type;
 		const itemID = itemSheet._id;
-		const actorID = itemSheet.parent._id;
+		const actorID = itemSheet?.parent?._id;
 		switch (itemType) {
 			case 'weapon':
 			case 'armor':

@@ -137,7 +137,7 @@ export class MonsterParts {
 			CONSTANTS.DATA.REFINEMENTLEVELDATA
 		);
 		const itemType = itemSheet.type;
-		const actorID = itemSheet.parent._id;
+		const actorID = itemSheet?.parent?._id;
 		const itemLevel =
 			Number(
 				Object.keys(levelData[itemType]).find(
@@ -151,7 +151,7 @@ export class MonsterParts {
 						) - 1
 				  ) || 20;
 
-		const actorLevel = game.actors.get(actorID).level;
+		const actorLevel = actorID ? game.actors.get(actorID).level : 20;
 
 		logger(false, 'updateItemLevel | ', {
 			levelData,

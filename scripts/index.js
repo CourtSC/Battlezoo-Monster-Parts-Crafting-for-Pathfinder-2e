@@ -9,7 +9,9 @@ Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
 });
 
 Hooks.on('createItem', async (itemSheet) => {
-	MonsterParts.initializeItem(itemSheet);
+	if (!itemSheet.flags.hasOwnProperty([CONSTANTS.ID])) {
+		MonsterParts.initializeItem(itemSheet);
+	}
 });
 
 Hooks.on('updateActor', (characterSheet) => {
@@ -46,7 +48,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	await MonsterParts.checkForInit(itemSheet.object);
 	const itemType = itemSheet.object.type;
 	const itemID = itemSheet.object._id;
-	const actorID = itemSheet.object.parent._id;
+	const actorID = itemSheet.object?.parent?._id;
 	await MonsterParts.renderMonsterPartsTab(html, itemSheet);
 
 	logger(false, 'renderItemSheet', ' | ', {
@@ -207,6 +209,8 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 			imbuementID,
 			selectedOption
 		);
+
+		updatePackage.flags.ruleApplied = true;
 
 		MonsterParts.updateItem(
 			itemSheet.object,
