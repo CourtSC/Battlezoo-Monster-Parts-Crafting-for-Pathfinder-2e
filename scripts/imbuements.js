@@ -249,12 +249,17 @@ export class Imbuements {
 				  ) || 20;
 
 		const lowerLevel = Math.min(imbuementLevel, itemLevel);
+		const nextLevel =
+			lowerLevel + 1 <= 20 ? levelData[itemType][lowerLevel + 1] : 0;
 
 		logger(false, 'Updating Imbuement Level | ', {
 			imbuementLevel,
 			itemLevel,
 		});
 
-		return lowerLevel;
+		return {
+			imbuementLevel: lowerLevel,
+			nextLevel,
+		};
 	}
 }

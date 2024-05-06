@@ -6,7 +6,11 @@
             <div class="monster-parts-data">
                 <a class="data-group">
                     <div class="data-group-label">Current Value:</div>
-                    <div class="data-group-value">{{itemSheet.object.system.price.value.gp}}gp</div>
+                    <div class="data-group-value">{{itemSheet.object.system.price.value.gp}} gp</div>
+                </a>
+                <a class="data-group">
+                    <div class="data-group-label">Next Level:</div>
+                    <div class="data-group-value">{{flags.refinement.nextLevel}} gp</div>
                 </a>
             </div>
             <div class="value-controls">
@@ -73,16 +77,16 @@
     {{#each imbuements }}
         {{#if render }}
             <fieldset class="imbuement">
-                <legend class="imbuement-title">{{name}}</legend>
+                <legend class="imbuement-title">{{name}} {{imbuementLevel}}</legend>
                 <div class="monster-parts-column-left">
                     <div class="monster-parts-data">
                         <a class="data-group">
                             <div class="data-group-label">Current Value:</div>
-                            <div class="data-group-value">{{imbuedValue}}gp</div>
+                            <div class="data-group-value">{{imbuedValue}} gp</div>
                         </a>
                         <a class="data-group">
-                            <div class="data-group-label">Current Level:</div>
-                            <div class="data-group-value">{{imbuementLevel}}</div>
+                            <div class="data-group-label">Next Level:</div>
+                            <div class="data-group-value">{{nextLevel}} gp</div>
                         </a>
                     </div>
                     <div class="value-controls">
