@@ -268,11 +268,15 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 
 					imbuements[imbuementID].imbuedValue += changeValue;
 
+					const imbuementLevelData = await Imbuements.updateImbuementLevel(
+						itemSheet.object,
+						imbuements[imbuementID].imbuedValue
+					);
+
 					imbuements[imbuementID].imbuementLevel =
-						await Imbuements.updateImbuementLevel(
-							itemSheet.object,
-							imbuements[imbuementID].imbuedValue
-						);
+						imbuementLevelData.imbuementLevel;
+
+					imbuements[imbuementID].nextLevel = imbuementLevelData.nextLevel;
 
 					await MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
 						system: { specific: { material: {}, runes: {} } },

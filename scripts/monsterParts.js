@@ -23,12 +23,12 @@ export class MonsterParts {
 		const isSkillItem =
 			helpers.getRefinement(itemSheet.object).refinementProperties
 				.refinementType === 'skillItem';
+
+		// Render and inject the Monster Parts tab.
 		const monsterPartsTab = await renderTemplate(
 			CONSTANTS.TEMPLATES.MonsterPartsTab,
 			{}
 		);
-
-		// Inject Imbuements tab.
 		itemSheetTabs.append(monsterPartsTab);
 
 		// Render and inject the sheet Body.
@@ -289,6 +289,12 @@ export class MonsterParts {
 				lowerLevel,
 				levelData.levels[lowerLevel]
 			);
+
+			// Package the XP value for the next level with the flags.
+			const nextLevelThreshold =
+				lowerLevel + 1 <= 20 ? levelData.levels[lowerLevel + 1].threshold : 0;
+			flags[CONSTANTS.ID][CONSTANTS.FLAGS.REFINEMENT].nextLevel =
+				nextLevelThreshold;
 
 			// reset the render property of imbuements for cases where the item's level is reduced after an update
 			const imbuements = helpers.getImbuements(itemSheet);
