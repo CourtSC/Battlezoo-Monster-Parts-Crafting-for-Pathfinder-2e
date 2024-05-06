@@ -47,12 +47,10 @@ export class Imbuements {
 						imbuementLevel: 0,
 					},
 				};
-
 				logger(false, 'Equipment Imbuements Initialized | ', {
 					imbuement,
 					itemSheet,
 				});
-
 				return imbuement;
 		}
 	}
@@ -101,7 +99,7 @@ export class Imbuements {
 						gte: [imbuementLevel, 12],
 					},
 				];
-				resistanceNote.text = `The ${damageType} damage dealt by this imbued property (including persistentDamageDice ${damageType} damage) ignores resistances.`;
+				resistanceNote.text = `The ${damageType} damage dealt by this imbued property (including persistent ${damageType} damage) ignores resistances.`;
 
 				const persistentDamageDice = await helpers.fetchJsonWithTimeout(
 					CONSTANTS.RULES.MIGHTPERSISTENTDAMAGE
@@ -181,7 +179,7 @@ export class Imbuements {
 						gte: [imbuementLevel, 12],
 					},
 				];
-				resistanceNote.text = `The ${damageType} damage dealt by this imbued property (including persistentDamageDice ${damageType} damage) ignores resistances.`;
+				resistanceNote.text = `The ${damageType} damage dealt by this imbued property (including persistent ${damageType} damage) ignores resistances.`;
 
 				const techniqueCriticalPersistentDamage =
 					await helpers.fetchJsonWithTimeout(
@@ -199,7 +197,7 @@ export class Imbuements {
 				const offGuardNote = await helpers.fetchJsonWithTimeout(
 					CONSTANTS.RULES.NOTE
 				);
-				offGuardNote.text = `Foes currently affected by persistent ${damageType} damage from the ${label} imbued property are distracted, making them flat-footed.`;
+				offGuardNote.text = `Foes currently affected by persistent ${damageType} damage from the ${label} imbued property are distracted, making them off-guard.`;
 				offGuardNote.title = label;
 				offGuardNote.predicate = [
 					{

@@ -274,7 +274,6 @@ export class MonsterParts {
 		}
 
 		// handle itemValue or actorLevel change
-		const itemValueChanged = refinementData.hasOwnProperty('itemValue');
 		if (refinementData.itemValue) {
 			// calculate item level
 			const levelData = await this.updateItemLevel(
@@ -331,9 +330,6 @@ export class MonsterParts {
 		}
 
 		// Handle refinementProperties change
-		const refinementPropertiesChange = refinementData.hasOwnProperty(
-			'refinementProperties'
-		);
 		if (refinementData.refinementProperties) {
 			flags[CONSTANTS.ID][CONSTANTS.FLAGS.REFINEMENT].refinementProperties =
 				refinementData.refinementProperties;
@@ -353,8 +349,6 @@ export class MonsterParts {
 			refinementData,
 			imbuementData,
 			itemSheet,
-			refinementPropertiesChange,
-			itemValueChanged,
 		});
 
 		// update the item sheet
