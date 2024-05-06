@@ -282,7 +282,6 @@
 		"0": {
 			"threshold": 0,
 			"numImbuements": 0,
-
 			"hardness": false,
 			"hp": false,
 			"brokenThreshold": false
@@ -310,119 +309,119 @@
 		},
 		"4": {
 			"threshold": 60,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 5,
 			"hp": 30,
 			"brokenThreshold": 15
 		},
 		"5": {
 			"threshold": 100,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 6,
 			"hp": 36,
 			"brokenThreshold": 18
 		},
 		"6": {
 			"threshold": 160,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 6,
 			"hp": 36,
 			"brokenThreshold": 18
 		},
 		"7": {
 			"threshold": 240,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 7,
 			"hp": 42,
 			"brokenThreshold": 21
 		},
 		"8": {
 			"threshold": 340,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 8,
 			"hp": 48,
 			"brokenThreshold": 24
 		},
 		"9": {
 			"threshold": 470,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 9,
 			"hp": 54,
 			"brokenThreshold": 27
 		},
 		"10": {
 			"threshold": 670,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 10,
 			"hp": 60,
 			"brokenThreshold": 30
 		},
 		"11": {
 			"threshold": 950,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 10,
 			"hp": 60,
 			"brokenThreshold": 30
 		},
 		"12": {
 			"threshold": 1350,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 11,
 			"hp": 66,
 			"brokenThreshold": 33
 		},
 		"13": {
 			"threshold": 2000,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 12,
 			"hp": 72,
 			"brokenThreshold": 36
 		},
 		"14": {
 			"threshold": 3000,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 12,
 			"hp": 72,
 			"brokenThreshold": 36
 		},
 		"15": {
 			"threshold": 4300,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 13,
 			"hp": 78,
 			"brokenThreshold": 39
 		},
 		"16": {
 			"threshold": 6500,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 14,
 			"hp": 84,
 			"brokenThreshold": 42
 		},
 		"17": {
 			"threshold": 10000,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 15,
 			"hp": 90,
 			"brokenThreshold": 45
 		},
 		"18": {
 			"threshold": 16000,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 16,
 			"hp": 96,
 			"brokenThreshold": 48
 		},
 		"19": {
 			"threshold": 25000,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 17,
 			"hp": 102,
 			"brokenThreshold": 51
 		},
 		"20": {
 			"threshold": 45000,
-			"numImbuements": 0,
+			"numImbuements": 1,
 			"hardness": 18,
 			"hp": 108,
 			"brokenThreshold": 54

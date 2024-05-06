@@ -1,5 +1,5 @@
 {
-	"id": "Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e",
+	"id": "monster-parts-crafting",
 	"title": "Battlezoo Monster Parts Crafting for Pathfinder 2e",
 	"description": "A module that adds an Imbuements tab to item sheets to track imbued properties from the Monster Parts Crafting system from the Battlezoo Bestiary.",
 	"authors": [
@@ -24,7 +24,14 @@
 			}
 		]
 	},
-	"scripts": ["scripts/monsterParts.js"],
+	"esmodules": [
+		"scripts/MonsterParts.js",
+		"scripts/Imbuements.js",
+		"scripts/index.js",
+		"scripts/logger.js",
+		"scripts/constants.js",
+		"scripts/helpers.js"
+	],
 	"languages": [
 		{
 			"lang": "en",

@@ -80,6 +80,10 @@
                             <div class="data-group-label">Current Value:</div>
                             <div class="data-group-value">{{imbuedValue}}gp</div>
                         </a>
+                        <a class="data-group">
+                            <div class="data-group-label">Current Level:</div>
+                            <div class="data-group-value">{{imbuementLevel}}</div>
+                        </a>
                     </div>
                     <div class="value-controls">
                         <label class="gold-value-label"
@@ -131,20 +135,22 @@
                                     {{/each}}
                                 </select>
                             </div>
-                            <div class="data-group">
-                                <label for="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}">Path:</label>
-                                <select class="monster-parts-path"
-                                        name="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}"
-                                        id="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}"
-                                        data-actor-id="{{actorID}}"
-                                        data-imbuement-id="{{id}}"
-                                        data-item-id="{{itemID}}">
-                                    <option value="" selected="selected" disabled hidden>{{imbuedPath}}</option>
-                                    {{#each ../imbuementData.weapon.paths }}
-                                        <option value="{{@key}}">{{this}}</option>
-                                    {{/each}}
-                                </select>
-                            </div>
+                            {{#if imbuedProperty }}
+                                <div class="data-group">
+                                    <label for="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}">Path:</label>
+                                    <select class="monster-parts-path"
+                                            name="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}"
+                                            id="monster-parts-path-{{this.id}}-{{../itemSheet.object._id}}"
+                                            data-actor-id="{{actorID}}"
+                                            data-imbuement-id="{{id}}"
+                                            data-item-id="{{itemID}}">
+                                        <option value="" selected="selected" disabled hidden>{{imbuedPath}}</option>
+                                        {{#each ../imbuementData.weapon.paths }}
+                                            <option value="{{@key}}">{{this}}</option>
+                                        {{/each}}
+                                    </select>
+                                </div>
+                            {{/if}}
                         {{/if}}
                         {{#if ../isEquipment }}
                             {{#if ../isSkillItem }}

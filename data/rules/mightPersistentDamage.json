@@ -1,0 +1,21 @@
+{
+	"key": "DamageDice",
+	"critical": true,
+	"selector": "{item|_id}-damage",
+	"dieSize": "d10",
+	"category": "persistent",
+	"value": {
+		"brackets": [
+			{
+				"start": 8,
+				"end": 13,
+				"value": { "diceNumber": 1 }
+			},
+			{
+				"start": 14,
+				"value": { "diceNumber": 2 }
+			}
+		]
+	},
+	"predicate": ["check:outcome:critical-success"]
+}

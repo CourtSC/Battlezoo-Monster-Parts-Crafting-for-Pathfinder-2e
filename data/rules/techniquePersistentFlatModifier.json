@@ -1,0 +1,14 @@
+{
+	"key": "FlatModifier",
+	"selector": "{item|_id}-damage",
+	"value": {
+		"brackets": [
+			{
+				"start": 4,
+				"end": 7,
+				"value": 1
+			}
+		]
+	},
+	"damageCategory": "persistent"
+}
