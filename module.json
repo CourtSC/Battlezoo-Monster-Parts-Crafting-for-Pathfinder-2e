@@ -7,7 +7,7 @@
 			"name": "DiceyCode"
 		}
 	],
-	"version": "1.4.2",
+	"version": "1.4.2.1",
 	"compatibility": {
 		"minimum": "11.315",
 		"verified": "11.315"
@@ -19,7 +19,8 @@
 				"type": "system",
 				"manifest": "https://github.com/foundryvtt/pf2e/releases/latest/download/system.json",
 				"compatibility": {
-					"minimum": "4.0.6"
+					"minimum": "4.0.6",
+					"verified": "5.15.3"
 				}
 			}
 		]
