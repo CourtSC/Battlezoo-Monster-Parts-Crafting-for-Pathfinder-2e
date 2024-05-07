@@ -1,6 +1,6 @@
 import { Imbuements } from './Imbuements.js';
 import { logger } from './logger.js';
-import { MonsterParts } from './monsterParts.js';
+import { MonsterParts } from './MonsterParts.js';
 import * as CONSTANTS from './constants.js';
 import * as helpers from './helpers.js';
 
