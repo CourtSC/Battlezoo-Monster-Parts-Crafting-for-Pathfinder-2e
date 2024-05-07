@@ -7,7 +7,7 @@
 			"name": "DiceyCode"
 		}
 	],
-	"version": "1.4.2.1",
+	"version": "1.4.2.2",
 	"compatibility": {
 		"minimum": "11.315",
 		"verified": "11.315"
@@ -31,13 +31,6 @@
 		"scripts/logger.js",
 		"scripts/constants.js",
 		"scripts/helpers.js"
-	],
-	"languages": [
-		{
-			"lang": "en",
-			"name": "English",
-			"path": "languages/en.json"
-		}
 	],
 	"styles": ["styles/monsterParts.css"],
 	"manifest": "https://raw.githubusercontent.com/CourtSC/Battlezoo-Monster-Parts-Crafting-for-Pathfinder-2e/main/module.json",
