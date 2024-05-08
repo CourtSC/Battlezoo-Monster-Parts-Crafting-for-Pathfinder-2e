@@ -23,7 +23,7 @@
 				"end": 17,
 				"value": {
 					"diceNumber": 1,
-					"dieSize": "d8"
+					"dieSize": "d6"
 				}
 			}
 		]

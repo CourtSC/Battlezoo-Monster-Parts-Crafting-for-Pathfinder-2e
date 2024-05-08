@@ -1,13 +1,14 @@
 {
 	"key": "DamageDice",
 	"selector": "{item|_id}-damage",
+	"category": "persistent",
 	"value": {
 		"brackets": [
 			{
 				"start": 8,
 				"end": 13,
 				"value": {
-					"damageDice": 1,
+					"diceNumber": 1,
 					"dieSize": "d6"
 				}
 			},
@@ -15,14 +16,14 @@
 				"start": 14,
 				"end": 17,
 				"value": {
-					"damageDice": 1,
+					"diceNumber": 1,
 					"dieSize": "d8"
 				}
 			},
 			{
 				"start": 18,
 				"value": {
-					"damageDice": 1,
+					"diceNumber": 1,
 					"dieSize": "d10"
 				}
 			}
