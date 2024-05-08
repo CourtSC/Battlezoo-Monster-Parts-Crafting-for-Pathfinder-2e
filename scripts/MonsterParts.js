@@ -216,7 +216,7 @@ export class MonsterParts {
 					// Rules UI stores selectors as arrays
 					flatModifier.selector = `{item|flags.${CONSTANTS.ID}[${CONSTANTS.FLAGS.REFINEMENT}].refinementProperties.refinementSkill}`;
 
-					updatePackage.system.rules = [flatModifier];
+					updatePackage.system.rules = itemSheet.rules.concat([flatModifier]);
 					updatePackage.system.usage = { type: 'worn', value: 'worn' };
 					updatePackage.flags[CONSTANTS.FLAGS.RULEAPPLIED] = true;
 				}
