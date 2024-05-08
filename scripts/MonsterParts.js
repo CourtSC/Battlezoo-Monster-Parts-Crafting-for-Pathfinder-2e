@@ -94,7 +94,7 @@ export class MonsterParts {
 	}
 
 	static async initializeItem(itemSheet) {
-		const imbuements = Imbuements.initializeImbuements(itemSheet);
+		const imbuements = await Imbuements.initializeImbuements(itemSheet);
 		const updateData = {
 			system: {},
 			flags: {
@@ -117,7 +117,7 @@ export class MonsterParts {
 			);
 			flatModifier.selector = `{item|flags.${CONSTANTS.ID}.${CONSTANTS.FLAGS.REFINEMENT}.refinementProperties.refinementSkill}`;
 
-			updateData.system.rules = [flatModifier];
+			updateData.system.rules = itemSheet.rules.concat([flatModifier]);
 			updateData.flags[CONSTANTS.FLAGS.RULEAPPLIED] = true;
 		}
 		logger(false, 'Item initialized | ', {
@@ -290,7 +290,7 @@ export class MonsterParts {
 				levelData.levels[lowerLevel]
 			);
 
-			// Package the XP value for the next level with the flags.
+			// Package the gp value for the next level with the flags.
 			const nextLevelThreshold =
 				lowerLevel + 1 <= 20 ? levelData.levels[lowerLevel + 1].threshold : 0;
 			flags[CONSTANTS.ID][CONSTANTS.FLAGS.REFINEMENT].nextLevel =
