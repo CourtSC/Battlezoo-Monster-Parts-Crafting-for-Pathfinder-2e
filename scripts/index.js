@@ -60,7 +60,8 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	});
 
 	// Change the Refinement Path for an Equipment item
-	html.on('change', '.monster-parts-refinement-property', async (event) => {
+	const changeMPRefineProp = html.find('.monster-parts-refinement-property');
+	changeMPRefineProp.on('change', async (event) => {
 		const imbuements = helpers.getImbuements(itemSheet.object);
 		const selectedOption =
 			event.currentTarget.selectedOptions[0].attributes[0].value;
@@ -133,7 +134,8 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	});
 
 	// Change the skill on a skill item.
-	html.on('change', '.monster-parts-skill', async (event) => {
+	const changeItemSkill = html.find('.monster-parts-skill');
+	changeItemSkill.on('change', async (event) => {
 		const imbuements = helpers.getImbuements(itemSheet.object);
 		const skill = event.currentTarget.selectedOptions[0].attributes[0].value;
 
@@ -163,7 +165,8 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	});
 
 	// Change the Imbuement Property
-	html.on('change', '.monster-parts-property', async (event) => {
+	const changeImbueProp = html.find('.monster-parts-property');
+	changeImbueProp.on('change', async (event) => {
 		const imbuements = helpers.getImbuements(itemSheet.object);
 		const currentTarget = event.currentTarget;
 		const selectedOption = currentTarget.selectedOptions[0].attributes[0].value;
@@ -189,7 +192,8 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	});
 
 	// Change the Imbuement Path
-	html.on('change', '.monster-parts-path', async (event) => {
+	const changeImbuePath = html.find('.monster-parts-path');
+	changeImbuePath.on('change', async (event) => {
 		const updatePackage = {
 			refinementData: {},
 			system: {},
@@ -235,8 +239,10 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	});
 
 	// Click on + button
-	html.on('click', '.add-gold-button', (event) => {
-		const imbuements = helpers.getImbuements(itemSheet.object);
+	const addGoldButton = html.find('.add-gold-button');
+
+	addGoldButton.on('click', async (event) => {
+		const imbuements = await helpers.getImbuements(itemSheet.object);
 		const clickedElement = event.currentTarget;
 		const action = clickedElement.dataset.action;
 		const changeValue = Number(clickedElement.previousElementSibling.value);
@@ -257,7 +263,8 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 					const currValue = itemSheet.object.system.price.value.gp;
 					const itemValue = currValue + changeValue;
 					// Update the item.
-					MonsterParts.updateItem(
+					event.stopPropagation();
+					return await MonsterParts.updateItem(
 						itemSheet.object,
 						{ itemValue },
 						{},
@@ -266,29 +273,33 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 							flags: { [CONSTANTS.FLAGS.REFINED]: true },
 						}
 					);
-					event.stopPropagation();
-					break;
 
 				case 'imbue-add-gold':
 					const imbuementID = clickedElement.getAttribute('data-imbuement-id');
-
+					console.log(`imbuement ID | ${imbuementID}`);
 					imbuements[imbuementID].imbuedValue += changeValue;
-
-					const imbuementLevelData = Imbuements.updateImbuementLevel(
+					console.log(`changeValue | ${changeValue}`);
+					console.log(`imbuedValue | ${imbuements[imbuementID].imbuedValue}`);
+					const imbuementLevelData = await Imbuements.updateImbuementLevel(
 						itemSheet.object,
 						imbuements[imbuementID].imbuedValue
 					);
-
+					console.log(`imbuementLevelData | ${imbuementLevelData}`);
 					imbuements[imbuementID].imbuementLevel =
 						imbuementLevelData.imbuementLevel;
 
 					imbuements[imbuementID].nextLevel = imbuementLevelData.nextLevel;
-
+					console.log(`imbuements | ${imbuements}`);
 					event.stopPropagation();
-					return MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
-						system: { specific: { material: {}, runes: {} } },
-						flags: {},
-					});
+					return await MonsterParts.updateItem(
+						itemSheet.object,
+						{},
+						imbuements,
+						{
+							system: { specific: { material: {}, runes: {} } },
+							flags: {},
+						}
+					);
 			}
 		} else if (!Number.isInteger(changeValue)) {
 			// Input is not an integer.
@@ -317,8 +328,10 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 	});
 
 	// Click on - button
-	html.on('click', '.subtract-gold-button', (event) => {
-		const imbuements = helpers.getImbuements(itemSheet.object);
+	const subtractGoldButton = html.find('.subtract-gold-button');
+
+	subtractGoldButton.on('click', async (event) => {
+		const imbuements = await helpers.getImbuements(itemSheet.object);
 		const clickedElement = event.currentTarget;
 		const action = clickedElement.dataset.action;
 		const changeValue = Number(
@@ -342,7 +355,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 					// Update the item's value.
 					if (itemValue > 0) {
 						event.stopPropagation();
-						return MonsterParts.updateItem(
+						return await MonsterParts.updateItem(
 							itemSheet.object,
 							{ itemValue },
 							{},
@@ -353,7 +366,7 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 						);
 					} else {
 						event.stopPropagation();
-						return MonsterParts.updateItem(
+						return await MonsterParts.updateItem(
 							itemSheet.object,
 							{ itemValue: 0 },
 							{},
@@ -365,12 +378,14 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 					}
 
 				case 'imbue-subtract-gold':
-					const imbuementID = clickedElement.getAttribute('data-imbuement-id');
+					const imbuementID = await clickedElement.getAttribute(
+						'data-imbuement-id'
+					);
 
 					if (imbuements[imbuementID].imbuedValue - changeValue > 0) {
 						imbuements[imbuementID].imbuedValue -= changeValue;
 
-						const imbuementLevelData = Imbuements.updateImbuementLevel(
+						const imbuementLevelData = await Imbuements.updateImbuementLevel(
 							itemSheet.object,
 							imbuements[imbuementID].imbuedValue
 						);
@@ -381,13 +396,18 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 						imbuements[imbuementID].nextLevel = imbuementLevelData.nextLevel;
 
 						event.stopPropagation();
-						return MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
-							system: {},
-							flags: {},
-						});
+						return await MonsterParts.updateItem(
+							itemSheet.object,
+							{},
+							imbuements,
+							{
+								system: {},
+								flags: {},
+							}
+						);
 					} else {
 						imbuements[imbuementID].imbuedValue = 0;
-						const imbuementLevelData = Imbuements.updateImbuementLevel(
+						const imbuementLevelData = await Imbuements.updateImbuementLevel(
 							itemSheet.object,
 							imbuements[imbuementID].imbuedValue
 						);
@@ -398,10 +418,15 @@ Hooks.on('renderItemSheet', async (itemSheet, html) => {
 						imbuements[imbuementID].nextLevel = imbuementLevelData.nextLevel;
 
 						event.stopPropagation();
-						return MonsterParts.updateItem(itemSheet.object, {}, imbuements, {
-							system: {},
-							flags: {},
-						});
+						return await MonsterParts.updateItem(
+							itemSheet.object,
+							{},
+							imbuements,
+							{
+								system: {},
+								flags: {},
+							}
+						);
 					}
 			}
 		} else if (!Number.isInteger(changeValue)) {
