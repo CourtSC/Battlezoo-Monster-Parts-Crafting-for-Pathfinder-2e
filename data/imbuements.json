@@ -9,9 +9,6 @@
 			"acid": {
 				"name": "Acid"
 			},
-			"bane": {
-				"name": "Bane"
-			},
 			"cold": {
 				"name": "Cold"
 			},
@@ -33,8 +30,8 @@
 			"sonic": {
 				"name": "Sonic"
 			},
-			"wild": {
-				"name": "Wild"
+			"spirit": {
+				"name": "Spirit"
 			}
 		}
 	},
