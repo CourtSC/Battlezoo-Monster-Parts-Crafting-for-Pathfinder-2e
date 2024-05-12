@@ -111,7 +111,7 @@ fieldset.imbuement {
     width: 100px;
 }
 
-.tag.tag_transparent {
+.tag.tag_transparent, span.mod {
     text-transform: capitalize;
 }
 
